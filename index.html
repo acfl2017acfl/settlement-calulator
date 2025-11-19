@@ -8,7 +8,7 @@
     :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#6b8cff;--pill:#111827}
     html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
     body{background:linear-gradient(180deg,#071026 0%, #0f1724 100%);color:#e6eef8;padding:32px}
-    .container{max-width:900px;margin:0 auto}
+    .container{max-width:920px;margin:0 auto}
     h1{font-size:20px;margin:0 0 14px}
     .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
@@ -30,7 +30,7 @@
     <div class="card">
       <label for="outstanding">Outstanding Amount (₹)</label>
       <input id="outstanding" type="number" min="0" value="32000" />
-      <div class="row">
+      <div class="row" style="margin-bottom:8px">
         <button id="calc">Recalculate</button>
         <button id="reset" class="secondary">Reset</button>
         <button id="download" class="secondary">Download CSV</button>
@@ -55,78 +55,91 @@
   </div>
 
   <script>
-    const offers = [ {paid:3}, {paid:4}, {paid:6} ];
+    // Run after DOM is ready to ensure elements exist
+    document.addEventListener('DOMContentLoaded', () => {
+      const offers = [ {paid:3}, {paid:4}, {paid:6} ];
 
-    const elOutstanding = document.getElementById('outstanding');
-    const btnCalc = document.getElementById('calc');
-    const btnReset = document.getElementById('reset');
-    const btnDownload = document.getElementById('download');
-    const tbody = document.getElementById('tbody');
+      const elOutstanding = document.getElementById('outstanding');
+      const btnCalc = document.getElementById('calc');
+      const btnReset = document.getElementById('reset');
+      const btnDownload = document.getElementById('download');
+      const tbody = document.getElementById('tbody');
 
-    function formatINR(n){
-      if (isNaN(n)) return '-';
-      return new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
-    }
+      function formatINR(n){
+        if (isNaN(n)) return '-';
+        return new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
+      }
 
-    function roundUpTo10(value){
-      return Math.ceil(value / 10) * 10;
-    }
+      function roundUpTo10(value){
+        return Math.ceil(value / 10) * 10;
+      }
 
-    function calculateAndRender(){
-      const outstanding = Number(elOutstanding.value) || 0;
-      tbody.innerHTML = '';
+      function calculateAndRender(){
+        const outstanding = Number(elOutstanding.value) || 0;
+        tbody.innerHTML = '';
 
-      offers.forEach(o => {
-        const paidParts = o.paid;
-        const divisor = paidParts + 1;
+        offers.forEach(o => {
+          const paidParts = o.paid;
+          const divisor = paidParts + 1;
 
-        const instRaw = outstanding / divisor;
-        const installment = roundUpTo10(instRaw);
+          const instRaw = outstanding / divisor;
+          const installment = roundUpTo10(instRaw);
 
-        const totalCollection = installment * paidParts;
-        const discount = installment;
+          const totalCollection = installment * paidParts;
+          const discount = installment;
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="cell-amount">${formatINR(outstanding)}</td>
-          <td>${paidParts}+1</td>
-          <td>${formatINR(installment)}</td>
-          <td>${formatINR(totalCollection)}</td>
-          <td>${formatINR(discount)}</td>
-        `;
-        tbody.appendChild(tr);
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="cell-amount">${formatINR(outstanding)}</td>
+            <td>${paidParts}+1</td>
+            <td>${formatINR(installment)}</td>
+            <td>${formatINR(totalCollection)}</td>
+            <td>${formatINR(discount)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Debounce helper to avoid too many renders while typing
+      function debounce(fn, delay){
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(()=>fn(...args), delay);
+        };
+      }
+
+      const debouncedCalculate = debounce(calculateAndRender, 180);
+
+      // Event listeners
+      btnCalc.addEventListener('click', calculateAndRender);
+      btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; calculateAndRender(); });
+      elOutstanding.addEventListener('input', debouncedCalculate);
+
+      btnDownload.addEventListener('click', ()=>{
+        const outstanding = Number(elOutstanding.value) || 0;
+        const rows = [['Outstanding','Offer','Installment','TotalCollection','Discount']];
+
+        offers.forEach(o=>{
+          const paid = o.paid;
+          const divisor = paid+1;
+          const instRaw = outstanding/divisor;
+          const inst = roundUpTo10(instRaw);
+          const tot = inst*paid;
+          const disc = inst;
+          rows.push([outstanding, `${paid}+1`, inst, tot, disc]);
+        });
+
+        const csv = rows.map(r => r.join(',')).join('\\n');
+        const blob = new Blob([csv], {type:'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'settlement_offers.csv';
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
       });
-    }
 
-    btnCalc.addEventListener('click', calculateAndRender);
-    // Auto-calculate when the outstanding input changes (live update)
-    elOutstanding.addEventListener('input', calculateAndRender);
-    btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; calculateAndRender(); });
-
-    btnDownload.addEventListener('click', ()=>{
-      const outstanding = Number(elOutstanding.value) || 0;
-      const rows = [['Outstanding','Offer','Installment','TotalCollection','Discount']];
-
-      offers.forEach(o=>{
-        const paid = o.paid;
-        const divisor = paid+1;
-
-        const instRaw = outstanding/divisor;
-        const inst = roundUpTo10(instRaw);
-        const tot = inst*paid;
-        const disc = inst;
-
-        rows.push([outstanding, `${paid}+1`, inst, tot, disc]);
-      });
-
-      const csv = rows.map(r=>r.join(',')).join('
-');
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      // initial render
+      calculateAndRender();
     });
-
-    calculateAndRender();
   </script>
 </body>
 </html>
