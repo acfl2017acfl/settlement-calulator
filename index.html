@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Settlement Offer Calculator</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#6b8cff;--pill:#111827}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071026 0%, #0f1724 100%);color:#e6eef8;padding:32px}
+    .container{max-width:900px;margin:0 auto}
+    h1{font-size:20px;margin:0 0 14px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=number]{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+    .row{display:flex;gap:10px;margin-top:12px}
+    button{background:var(--accent);border:0;padding:10px 14px;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0 12px;margin-top:18px}
+    th{text-align:left;color:var(--muted);font-size:13px;padding-left:12px}
+    td{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px}
+    .cell-amount{min-width:120px}
+    .muted{color:var(--muted);font-size:13px}
+    .flex-between{display:flex;justify-content:space-between;align-items:center}
+    @media (max-width:600px){.row{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Settlement Offer Calculator (3+1, 4+1, 6+1)</h1>
+    <div class="card">
+      <label for="outstanding">Outstanding Amount (₹)</label>
+      <input id="outstanding" type="number" min="0" value="32000" />
+      <div class="row">
+        <button id="calc">Recalculate</button>
+        <button id="reset" class="secondary">Reset</button>
+        <button id="download" class="secondary">Download CSV</button>
+      </div>
+
+      <table id="results" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Outstanding (₹)</th>
+            <th>Offer</th>
+            <th>Installment (₹)</th>
+            <th>Total Collection (₹)</th>
+            <th>Discount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:8px">Formula: Installment = Outstanding ÷ (PaidParts + 1). Total Collection = Installment × PaidParts. Discount = Installment.</p>
+    </div>
+  </div>
+
+  <script>
+    // Offers to show (only these three)
+    const offers = [ {paid:3}, {paid:4}, {paid:6} ];
+
+    const elOutstanding = document.getElementById('outstanding');
+    const btnCalc = document.getElementById('calc');
+    const btnReset = document.getElementById('reset');
+    const btnDownload = document.getElementById('download');
+    const tbody = document.getElementById('tbody');
+
+    function formatINR(n){
+      if (isNaN(n)) return '-';
+      return new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
+    }
+
+    function calculateAndRender(){
+      const outstanding = Number(elOutstanding.value) || 0;
+      tbody.innerHTML = '';
+      offers.forEach(o => {
+        const paidParts = o.paid; // e.g. 3 for 3+1
+        const divisor = paidParts + 1;
+        const installment = outstanding / divisor; // exact number
+        const totalCollection = installment * paidParts;
+        const discount = installment;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="cell-amount">${formatINR(outstanding)}</td>
+          <td> ${paidParts}+1 </td>
+          <td>${formatINR(installment)}</td>
+          <td>${formatINR(totalCollection)}</td>
+          <td>${formatINR(discount)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    btnCalc.addEventListener('click', calculateAndRender);
+    btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; calculateAndRender(); });
+
+    btnDownload.addEventListener('click', ()=>{
+      const outstanding = Number(elOutstanding.value) || 0;
+      const rows = [['Outstanding','Offer','Installment','TotalCollection','Discount']];
+      offers.forEach(o=>{
+        const paid = o.paid; const div = paid+1; const inst = outstanding/div; const tot = inst*paid; const disc = inst;
+        rows.push([outstanding, `${paid}+1`, Math.round(inst), Math.round(tot), Math.round(disc)]);
+      });
+      const csv = rows.map(r=>r.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // initial render
+    calculateAndRender();
+  </script>
+</body>
+</html>
