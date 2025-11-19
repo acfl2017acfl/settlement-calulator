@@ -34,8 +34,8 @@
 
     footer{margin-top:14px;color:var(--muted);font-size:13px}
 
-    /* Responsive adjustments */
-    @media (max-width:720px){
+    /* Responsive adjustments - STACK only on very small screens */
+    @media (max-width:480px){
       .container{padding:14px}
       header{gap:10px}
       .logo{width:40px;height:40px}
@@ -45,7 +45,7 @@
       .controls{flex-direction:column}
       .btn{width:100%;padding:12px;font-size:16px}
 
-      /* Make table rows stack as cards on small screens */
+      /* Make table rows stack as cards on small screens only */
       table, thead, tbody, th, td, tr { display: block; }
       thead { display: none; }
       tbody { margin-top:8px; }
@@ -111,7 +111,7 @@
       <p class="muted" style="margin-top:8px">Formula: Installment = Outstanding ÷ (PaidParts + 1), then rounded <strong>UP</strong> to next ₹10. Total Collection = Installment × PaidParts. Discount = Installment.</p>
     </div>
 
-    <footer class="muted">Tip: On small screens table rows become stacked cards for readability. Use the Download CSV button to export results.</footer>
+    <footer class="muted">Tip: On very small screens (≤480px) table rows become stacked cards for readability. Use the Download CSV button to export results.</footer>
   </div>
 
   <script>
@@ -148,13 +148,7 @@
           const discount = installment;
 
           const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="cell-amount">${formatINR(outstanding)}</td>
-            <td>${paidParts}+1</td>
-            <td>${formatINR(installment)}</td>
-            <td>${formatINR(totalCollection)}</td>
-            <td>${formatINR(discount)}</td>
-          `;
+          tr.innerHTML = `\n            <td class="cell-amount">${formatINR(outstanding)}</td>\n            <td>${paidParts}+1</td>\n            <td>${formatINR(installment)}</td>\n            <td>${formatINR(totalCollection)}</td>\n            <td>${formatINR(discount)}</td>\n          `;
           tbody.appendChild(tr);
         });
       }
@@ -183,8 +177,7 @@
           rows.push([outstanding, `${paid}+1`, inst, tot, disc]);
         });
 
-        const csv = rows.map(r => r.join(',')).join('
-');
+        const csv = rows.map(r => r.join(',')).join('\n');
         const blob = new Blob([csv], {type:'text/csv'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = 'settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
