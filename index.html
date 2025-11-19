@@ -21,7 +21,6 @@
     td{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px}
     .cell-amount{min-width:120px}
     .muted{color:var(--muted);font-size:13px}
-    .flex-between{display:flex;justify-content:space-between;align-items:center}
     @media (max-width:600px){.row{flex-direction:column}}
   </style>
 </head>
@@ -51,12 +50,11 @@
           <!-- rows injected by JS -->
         </tbody>
       </table>
-      <p class="muted" style="margin-top:8px">Formula: Installment = Outstanding ÷ (PaidParts + 1). Total Collection = Installment × PaidParts. Discount = Installment.</p>
+      <p class="muted" style="margin-top:8px">Formula: Installment = Outstanding ÷ (PaidParts + 1), then rounded <b>UP</b> to next ₹10. Total Collection = Installment × PaidParts. Discount = Installment.</p>
     </div>
   </div>
 
   <script>
-    // Offers to show (only these three)
     const offers = [ {paid:3}, {paid:4}, {paid:6} ];
 
     const elOutstanding = document.getElementById('outstanding');
@@ -70,21 +68,28 @@
       return new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
     }
 
+    function roundUpTo10(value){
+      return Math.ceil(value / 10) * 10;
+    }
+
     function calculateAndRender(){
       const outstanding = Number(elOutstanding.value) || 0;
       tbody.innerHTML = '';
+
       offers.forEach(o => {
-        const paidParts = o.paid; // e.g. 3 for 3+1
+        const paidParts = o.paid;
         const divisor = paidParts + 1;
-        const installmentRaw = outstanding / divisor;
-        const installment = Math.round(installmentRaw / 10) * 10; // rounded to nearest 10
+
+        const instRaw = outstanding / divisor;
+        const installment = roundUpTo10(instRaw);
+
         const totalCollection = installment * paidParts;
         const discount = installment;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="cell-amount">${formatINR(outstanding)}</td>
-          <td> ${paidParts}+1 </td>
+          <td>${paidParts}+1</td>
           <td>${formatINR(installment)}</td>
           <td>${formatINR(totalCollection)}</td>
           <td>${formatINR(discount)}</td>
@@ -99,17 +104,25 @@
     btnDownload.addEventListener('click', ()=>{
       const outstanding = Number(elOutstanding.value) || 0;
       const rows = [['Outstanding','Offer','Installment','TotalCollection','Discount']];
+
       offers.forEach(o=>{
-        const paid = o.paid; const div = paid+1; const instRaw = outstanding/div; const inst = Math.round(instRaw/10)*10; const tot = inst*paid; const disc = inst;
-        rows.push([outstanding, `${paid}+1`, Math.round(inst), Math.round(tot), Math.round(disc)]);
+        const paid = o.paid;
+        const divisor = paid+1;
+
+        const instRaw = outstanding/divisor;
+        const inst = roundUpTo10(instRaw);
+        const tot = inst*paid;
+        const disc = inst;
+
+        rows.push([outstanding, `${paid}+1`, inst, tot, disc]);
       });
+
       const csv = rows.map(r=>r.join(',')).join('\n');
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href=url; a.download='settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
-    // initial render
     calculateAndRender();
   </script>
 </body>
