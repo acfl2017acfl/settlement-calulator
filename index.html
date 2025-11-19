@@ -4,195 +4,113 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Settlement Offer Calculator</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg-1: #0b1220; --bg-2: #071028; --card: rgba(255,255,255,0.03);
-      --muted: #98a6bf; --accent: #6b8cff; --glass: rgba(255,255,255,0.04);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,var(--bg-2) 0%,var(--bg-1) 100%);color:#e8f0ff}
-    .wrap{max-width:980px;margin:28px auto;padding:20px}
-    header{display:flex;gap:16px;align-items:center;margin-bottom:18px}
-    .brand{display:flex;gap:12px;align-items:center}
-    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#6b8cff,#4dd0e1);display:flex;align-items:center;justify-content:center;font-weight:700;color:#07203a}
-    h1{margin:0;font-size:18px}
-    p.lead{margin:0;color:var(--muted);font-size:13px}
-
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    @media(max-width:880px){.grid{grid-template-columns:1fr}}
-
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); padding:18px;border-radius:14px;box-shadow:0 6px 24px rgba(2,6,23,0.6);border:1px solid var(--glass)}
-
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#6b8cff;--pill:#111827}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{background:linear-gradient(180deg,#071026 0%, #0f1724 100%);color:#e6eef8;padding:32px}
+    .container{max-width:900px;margin:0 auto}
+    h1{font-size:20px;margin:0 0 14px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=number]{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
-
-    .controls{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
-    .btn.primary{background:linear-gradient(90deg,var(--accent),#4dd0e1);color:#04203a}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-    .btn.warn{background:#ffbb6a;color:#2a1200}
-
-    table{width:100%;border-collapse:separate;border-spacing:0 12px;margin-top:16px}
-    th{color:var(--muted);font-size:13px;text-align:left;padding-left:12px}
+    input[type=number]{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:16px}
+    .row{display:flex;gap:10px;margin-top:12px}
+    button{background:var(--accent);border:0;padding:10px 14px;border-radius:8px;color:#fff;font-weight:600;cursor:pointer}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0 12px;margin-top:18px}
+    th{text-align:left;color:var(--muted);font-size:13px;padding-left:12px}
     td{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px}
+    .cell-amount{min-width:120px}
     .muted{color:var(--muted);font-size:13px}
-
-    .offer-list{display:flex;flex-direction:column;gap:10px}
-    .offer{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
-    .offer .left{display:flex;gap:12px;align-items:center}
-    .pill{background:rgba(255,255,255,0.02);padding:6px 10px;border-radius:999px;font-weight:700}
-    .small{font-size:13px;color:var(--muted)}
-
-    footer{margin-top:14px;color:var(--muted);font-size:13px}
-
-    .tools{display:flex;flex-direction:column;gap:10px}
-    .copy{display:flex;gap:8px}
-
-    .note{margin-top:10px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(107,140,255,0.06), rgba(77,208,225,0.03));color:#001226}
-
-    /* small helpers */
-    .right{text-align:right}
+    .flex-between{display:flex;justify-content:space-between;align-items:center}
+    @media (max-width:600px){.row{flex-direction:column}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo">SO</div>
-        <div>
-          <h1>Settlement Offer Calculator</h1>
-          <p class="lead">Quickly compare 3+1, 4+1 and 6+1 offers — installments always rounded up to the next ₹10.</p>
-        </div>
+  <div class="container">
+    <h1>Settlement Offer Calculator (3+1, 4+1, 6+1)</h1>
+    <div class="card">
+      <label for="outstanding">Outstanding Amount (₹)</label>
+      <input id="outstanding" type="number" min="0" value="32000" />
+      <div class="row">
+        <button id="calc">Recalculate</button>
+        <button id="reset" class="secondary">Reset</button>
+        <button id="download" class="secondary">Download CSV</button>
       </div>
-    </header>
 
-    <div class="grid">
-      <main class="card">
-        <label for="outstanding">Outstanding Amount (₹)</label>
-        <input id="outstanding" type="number" min="0" value="32000" />
-
-        <div class="controls">
-          <button id="calc" class="btn primary">Recalculate</button>
-          <button id="reset" class="btn ghost">Reset</button>
-          <button id="download" class="btn ghost">Download CSV</button>
-          <button id="copy" class="btn ghost">Copy Results</button>
-        </div>
-
-        <table id="results" aria-live="polite">
-          <thead>
-            <tr>
-              <th>Outstanding (₹)</th>
-              <th>Offer</th>
-              <th>Installment (₹)</th>
-              <th>Total Collection (₹)</th>
-              <th>Discount (₹)</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-
-        <p class="muted" style="margin-top:8px">Formula: Installment = ceil(Outstanding ÷ (PaidParts + 1) to next ₹10). Total Collection = Installment × PaidParts. Discount = Installment.</p>
-      </main>
-
-      <aside>
-        <div class="card tools">
-          <h3 style="margin:0 0 6px">Offers</h3>
-          <div class="offer-list" id="offerList"></div>
-
-          <div class="note">
-            <div style="font-weight:700">Rounding rule</div>
-            <div class="small">Installment is always rounded up to the next multiple of ₹10 (e.g., ₹1,234 → ₹1,240).</div>
-          </div>
-        </div>
-      </aside>
+      <table id="results" aria-live="polite">
+        <thead>
+          <tr>
+            <th>Outstanding (₹)</th>
+            <th>Offer</th>
+            <th>Installment (₹)</th>
+            <th>Total Collection (₹)</th>
+            <th>Discount (₹)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:8px">Formula: Installment = Outstanding ÷ (PaidParts + 1). Total Collection = Installment × PaidParts. Discount = Installment.</p>
     </div>
-
-    <footer class="card" style="margin-top:12px">Tip: To publish changes, replace the file <code>index.html</code> in your GitHub repo and commit — GitHub Pages will update the site automatically.</footer>
   </div>
 
   <script>
+    // Offers to show (only these three)
     const offers = [ {paid:3}, {paid:4}, {paid:6} ];
+
     const elOutstanding = document.getElementById('outstanding');
     const btnCalc = document.getElementById('calc');
     const btnReset = document.getElementById('reset');
     const btnDownload = document.getElementById('download');
-    const btnCopy = document.getElementById('copy');
     const tbody = document.getElementById('tbody');
-    const offerList = document.getElementById('offerList');
 
     function formatINR(n){
       if (isNaN(n)) return '-';
       return new Intl.NumberFormat('en-IN', {style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
     }
 
-    function ceilTo10(x){
-      return Math.ceil(x/10)*10;
-    }
-
-    function calculateOffers(outstanding){
-      return offers.map(o=>{
-        const paidParts = o.paid;
+    function calculateAndRender(){
+      const outstanding = Number(elOutstanding.value) || 0;
+      tbody.innerHTML = '';
+      offers.forEach(o => {
+        const paidParts = o.paid; // e.g. 3 for 3+1
         const divisor = paidParts + 1;
-        const instRaw = outstanding / divisor;
-        const installment = ceilTo10(instRaw);
+        const installmentRaw = outstanding / divisor;
+        const installment = Math.round(installmentRaw / 10) * 10; // rounded to nearest 10
         const totalCollection = installment * paidParts;
         const discount = installment;
-        return {paidParts,installment,totalCollection,discount};
-      });
-    }
 
-    function renderOffers(){
-      const outstanding = Number(elOutstanding.value) || 0;
-      const rows = calculateOffers(outstanding);
-      tbody.innerHTML = '';
-      rows.forEach(r=>{
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="cell-amount">${formatINR(outstanding)}</td>
-          <td> ${r.paidParts}+1 </td>
-          <td>${formatINR(r.installment)}</td>
-          <td>${formatINR(r.totalCollection)}</td>
-          <td>${formatINR(r.discount)}</td>
+          <td> ${paidParts}+1 </td>
+          <td>${formatINR(installment)}</td>
+          <td>${formatINR(totalCollection)}</td>
+          <td>${formatINR(discount)}</td>
         `;
         tbody.appendChild(tr);
       });
-
-      // update aside list
-      offerList.innerHTML = '';
-      rows.forEach(r=>{
-        const div = document.createElement('div'); div.className='offer';
-        div.innerHTML = `<div class="left"><div class="pill">${r.paidParts}+1</div><div><div style="font-weight:700">Installment ${formatINR(r.installment)}</div><div class="small">Total ${formatINR(r.totalCollection)}</div></div></div><div class="right small">Discount ${formatINR(r.discount)}</div>`;
-        offerList.appendChild(div);
-      });
     }
 
-    btnCalc.addEventListener('click', renderOffers);
-    btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; renderOffers(); });
+    btnCalc.addEventListener('click', calculateAndRender);
+    btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; calculateAndRender(); });
 
     btnDownload.addEventListener('click', ()=>{
       const outstanding = Number(elOutstanding.value) || 0;
       const rows = [['Outstanding','Offer','Installment','TotalCollection','Discount']];
-      const data = calculateOffers(outstanding);
-      data.forEach(d=>rows.push([outstanding, `${d.paidParts}+1`, d.installment, d.totalCollection, d.discount]));
+      offers.forEach(o=>{
+        const paid = o.paid; const div = paid+1; const instRaw = outstanding/div; const inst = Math.round(instRaw/10)*10; const tot = inst*paid; const disc = inst;
+        rows.push([outstanding, `${paid}+1`, Math.round(inst), Math.round(tot), Math.round(disc)]);
+      });
       const csv = rows.map(r=>r.join(',')).join('\n');
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href=url; a.download='settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
-    btnCopy.addEventListener('click', async ()=>{
-      const outstanding = Number(elOutstanding.value) || 0;
-      const rows = calculateOffers(outstanding);
-      let txt = 'Outstanding: ' + outstanding + '\n';
-      rows.forEach(r=>{ txt += `${r.paidParts}+1 -> Installment: ${r.installment}, Total: ${r.totalCollection}, Discount: ${r.discount}\n`; });
-      try{ await navigator.clipboard.writeText(txt); alert('Results copied to clipboard'); } catch(e){ alert('Copy failed: allow clipboard access or use Download CSV'); }
-    });
-
     // initial render
-    renderOffers();
+    calculateAndRender();
   </script>
 </body>
 </html>
