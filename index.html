@@ -72,14 +72,14 @@
             <label>Principal Outstanding (₹)</label>
             <input id="principal" type="number" min="0" step="1" value="50000" inputmode="numeric" />
 
-            <label style="margin-top:10px">OD as on date (₹)</label>
+            <label style="margin-top:10px">Interest Outstanding (₹)</label>
             <input id="odToday" type="number" min="0" step="1" value="5000" inputmode="numeric" />
 
             <label style="margin-top:10px">Annual Interest Rate (%)</label>
             <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" />
 
-            <label style="margin-top:10px">First EMI Date</label>
-            <input id="firstDate" type="date" />
+            <label style="margin-top:10px">First EMI Date (today)</label>
+            <input id="firstDate" type="date" readonly />
 
             <div class="controls">
               <button id="recalc">Recalculate</button>
@@ -102,7 +102,7 @@
             <tbody id="tbody"></tbody>
           </table>
 
-          <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + OD_today + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
+          <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
       </div>
 
@@ -136,7 +136,7 @@
       </aside>
     </div>
 
-    <footer class="muted">Note: Installment is rounded **up** to the nearest ₹10. 'Discount' shown equals one installment (the "+1").</footer>
+    <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10. 'Discount' shown equals one installment (the "+1").</footer>
   </div>
 
   <script>
@@ -203,18 +203,14 @@
     const sched41 = document.getElementById('sched41');
     const sched61 = document.getElementById('sched61');
 
-    // initialize date to today if empty
-    function setDefaultDateToday(){
-      if (!elDate.value){
-        const t = new Date();
-        // yyyy-mm-dd
-        const yyyy = t.getFullYear();
-        const mm = String(t.getMonth() + 1).padStart(2,'0');
-        const dd = String(t.getDate()).padStart(2,'0');
-        elDate.value = `${yyyy}-${mm}-${dd}`;
-      }
-    }
-    setDefaultDateToday();
+    // initialize date to today (always set it)
+    (function setDefaultDateToday(){
+      const t = new Date();
+      const yyyy = t.getFullYear();
+      const mm = String(t.getMonth() + 1).padStart(2,'0');
+      const dd = String(t.getDate()).padStart(2,'0');
+      elDate.value = `${yyyy}-${mm}-${dd}`;
+    })();
 
     // Debounce
     function debounce(fn, ms){
@@ -332,7 +328,8 @@
       elPrincipal.value = 50000;
       elOD.value = 5000;
       elRate.value = 27;
-      setDefaultDateToday();
+      // reset date to today as well
+      (function(){ const t = new Date(); const yyyy = t.getFullYear(); const mm = String(t.getMonth() + 1).padStart(2,'0'); const dd = String(t.getDate()).padStart(2,'0'); elDate.value = `${yyyy}-${mm}-${dd}`; })();
       renderAll();
     });
 
