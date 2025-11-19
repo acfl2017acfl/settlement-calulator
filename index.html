@@ -99,6 +99,8 @@
     }
 
     btnCalc.addEventListener('click', calculateAndRender);
+    // Auto-calculate when the outstanding input changes (live update)
+    elOutstanding.addEventListener('input', calculateAndRender);
     btnReset.addEventListener('click', ()=>{ elOutstanding.value=''; calculateAndRender(); });
 
     btnDownload.addEventListener('click', ()=>{
@@ -117,7 +119,8 @@
         rows.push([outstanding, `${paid}+1`, inst, tot, disc]);
       });
 
-      const csv = rows.map(r=>r.join(',')).join('\n');
+      const csv = rows.map(r=>r.join(',')).join('
+');
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href=url; a.download='settlement_offers.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
