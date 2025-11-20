@@ -52,9 +52,6 @@
       border: 0 !important;
     }
 
-    /* Today's Date badge row (wraps badge + refresh button) */
-    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; white-space:nowrap; width:100%; }
-
     /* Today's Date badge */
     #todayDisplay {
       display:inline-block;
@@ -64,34 +61,8 @@
       border-radius: 8px;
       font-weight:700;
       font-size:13px;
-      line-height:1;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
-      vertical-align:middle;
+      margin-bottom:8px;
     }
-
-    /* Refresh button (green background with white SVG). Force square sizing via JS.
-       Important CSS: remove extra padding and allow JS to set exact width/height */
-    #refreshBtn {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      background: #28a745;
-      border-radius: 8px;
-      padding: 0; /* removed padding so width/height are exact */
-      border: 0;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(40,167,69,0.15);
-      flex: 0 0 auto;
-      line-height:0;
-      overflow:hidden;
-    }
-    #refreshBtn:active { transform: translateY(1px); }
-
-    /* SVG styling: use preserveAspectRatio and fill explicitly */
-    #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; vertical-align:middle; }
-    #refreshBtn svg path { fill: #fff; }
 
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
@@ -124,10 +95,6 @@
       tbody tr td { background: rgba(255,255,255,0.02); border-radius:8px; }
       /* small devices: allow horizontal scroll if content overflows */
       .card{overflow-x:auto}
-
-      /* Slightly smaller badge on narrow screens */
-      #todayDisplay { font-size:12px; padding:6px 8px; }
-      #todayRow { gap:6px; }
     }
 
     /* smaller font for very small devices */
@@ -161,17 +128,8 @@
       <div>
         <div class="card" aria-labelledby="inputs">
           <div id="inputs">
-            <!-- Today's Date styled badge + refresh button wrapper -->
-            <div id="todayRow">
-              <div id="todayDisplay" class="muted" style="margin-bottom:0"></div>
-              <button id="refreshBtn" title="Refresh page (reload)" aria-label="Refresh page">
-                <!-- NEW crisp white refresh SVG icon -->
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" role="img">
-                  <!-- circular arrow / sync icon -->
-                  <path d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5 0 1.1-.36 2.12-.96 2.94l1.46 1.46C19.9 16.07 20.5 14.57 20.5 13c0-4.14-3.36-7.5-7.5-7.5zM6.96 6.06 5.5 4.6C4.1 5.9 3.5 7.43 3.5 9c0 4.14 3.36 7.5 7.5 7.5v3l4-4-4-4v3c-2.76 0-5-2.24-5-5 0-1.1.36-2.12.96-2.94z" fill="#fff"/>
-                </svg>
-              </button>
-            </div>
+            <!-- Today's Date styled badge -->
+            <div id="todayDisplay" class="muted" style="margin-bottom:8px"></div>
 
             <label>Principal Outstanding (₹)</label>
             <input id="principal" type="number" min="0" step="1" value="0" inputmode="numeric" />
@@ -304,26 +262,17 @@
     const sched41 = document.getElementById('sched41');
     const sched61 = document.getElementById('sched61');
     const todayDisplay = document.getElementById('todayDisplay');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const todayRow = document.getElementById('todayRow');
 
-    // set today's date from system clock into both visible badge and hidden date input
-    function setTodayFromSystem(){
+    (function setDefaultDateToday(){
       const t = new Date();
       const yyyy = t.getFullYear();
       const mm = String(t.getMonth() + 1).padStart(2,'0');
       const dd = String(t.getDate()).padStart(2,'0');
-      // update hidden firstDate (ISO format yyyy-mm-dd)
       elDate.value = `${yyyy}-${mm}-${dd}`;
-      // update visible badge in DD-MMM-YYYY
+
+      // set visible today's date text (format: DD-MMM-YYYY)
       const vis = t.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       if (todayDisplay) todayDisplay.textContent = `Today's Date: ${vis}`;
-    }
-
-    // initial setup: set date from system and sync refresh button
-    (function init(){
-      setTodayFromSystem();
-      syncRefreshSize(); // size the refresh button and compute available width for badge
     })();
 
     function debounce(fn, ms){
@@ -421,77 +370,16 @@
 
     elRecalc.addEventListener('click', renderAll);
 
-    // Reset now reloads the full page (keeps original behavior)
-    elReset.addEventListener('click', ()=> {
-      // full page refresh (let browser decide caching)
+    // Reset now reloads the full page
+    elReset.addEventListener('click', ()=>{
+      // full page refresh
       location.reload();
     });
 
     elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
 
-    // New behavior: Refresh button reads current system date and updates UI without forcing a full page reload.
-    refreshBtn.addEventListener('click', () => {
-      // small visual feedback: briefly disable
-      refreshBtn.disabled = true;
-      // update system date display and hidden input
-      setTodayFromSystem();
-      // recompute sizes (badge width may have changed)
-      syncRefreshSize();
-      // re-render table & schedules with the updated date
-      renderAll();
-      // re-enable button after tiny delay
-      setTimeout(()=> { refreshBtn.disabled = false; }, 120);
-    });
-
     // initial render
     renderAll();
-
-    /***** Sync refresh button size to match the Today's Date badge height (square)
-          and compute a safe max-width for the date so it's not clipped. *****/
-    function syncRefreshSize(){
-      if (!todayDisplay || !refreshBtn || !todayRow) return;
-      // compute the visible size of the badge
-      const badgeRect = todayDisplay.getBoundingClientRect();
-      const rowRect = todayRow.getBoundingClientRect();
-
-      // Use badge height to make a square button (avoids horizontal elongation on mobile)
-      const height = Math.max(28, Math.round(badgeRect.height));
-      refreshBtn.style.width = height + 'px';
-      refreshBtn.style.height = height + 'px';
-      refreshBtn.style.borderRadius = Math.max(6, Math.round(height * 0.2)) + 'px';
-
-      // Compute available width for the badge text inside the row:
-      // row width - button width - gap - small buffer
-      const gap = 8;
-      const buffer = 6; // small breathing room
-      const available = Math.max(0, Math.round(rowRect.width - height - gap - buffer));
-      // set maxWidth so date isn't clipped; allow it to use full available width
-      todayDisplay.style.maxWidth = available + 'px';
-    }
-
-    // initial sync (already called in init but call again after render)
-    syncRefreshSize();
-
-    // Keep it in sync on window resize and when the today's text changes
-    window.addEventListener('resize', debounce(syncRefreshSize, 80));
-
-    // Observe content changes to the todayDisplay or structural changes in the row
-    if (window.MutationObserver) {
-      const mo = new MutationObserver(debounce(syncRefreshSize, 60));
-      mo.observe(todayDisplay, { childList: true, subtree: true, characterData: true });
-      const mo2 = new MutationObserver(debounce(syncRefreshSize, 60));
-      mo2.observe(todayRow, { attributes: true, childList: true, subtree: true });
-    }
-
-    // Also update date if the page becomes visible again (useful if system date changed while tab was in background)
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        // update system date & refresh UI
-        setTodayFromSystem();
-        syncRefreshSize();
-        renderAll();
-      }
-    });
   </script>
 </body>
 </html>
