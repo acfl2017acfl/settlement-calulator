@@ -53,7 +53,7 @@
     }
 
     /* Today's Date badge row (wraps badge + refresh button) */
-    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; }
+    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; white-space:nowrap; }
 
     /* Today's Date badge */
     #todayDisplay {
@@ -66,7 +66,7 @@
       font-size:13px;
     }
 
-    /* Refresh button (green background with white SVG). Size is synced by JS to match the badge breadth/height) */
+    /* Refresh button (green background with white SVG). Size is synced by JS to match the badge height) */
     #refreshBtn {
       display:inline-flex;
       align-items:center;
@@ -77,9 +77,12 @@
       border: 0;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(40,167,69,0.15);
-      /* width/height will be set dynamically to match #todayDisplay */
-      min-width: 28px;
-      min-height: 28px;
+      /* width/height will be set dynamically to match #todayDisplay height (keeps it square) */
+      width: auto;
+      height: auto;
+      min-width: 0;
+      min-height: 0;
+      flex: 0 0 auto;
     }
     #refreshBtn:active { transform: translateY(1px); }
     #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; }
@@ -115,6 +118,12 @@
       tbody tr td { background: rgba(255,255,255,0.02); border-radius:8px; }
       /* small devices: allow horizontal scroll if content overflows */
       .card{overflow-x:auto}
+
+      /* Ensure todayRow doesn't wrap and the small button stays square */
+      #todayRow { gap:6px; }
+      #todayDisplay { font-size:12px; padding:6px 8px; }
+      /* on very narrow screens, cap the badge width to avoid pushing layout */
+      #todayDisplay { max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     }
 
     /* smaller font for very small devices */
@@ -421,19 +430,15 @@
     // initial render
     renderAll();
 
-    /***** Sync refresh button size to match the Today's Date badge breadth/height *****/
+    /***** Sync refresh button size to match the Today's Date badge height (square) *****/
     function syncRefreshSize(){
       if (!todayDisplay || !refreshBtn) return;
       // compute the visible size of the badge
       const rect = todayDisplay.getBoundingClientRect();
-      // Use badge height as height, and badge width as width
-      // Add small padding so icon fits nicely
+      // Use badge height to make a square button (avoids horizontal elongation on mobile)
       const height = Math.max(28, Math.round(rect.height));
-      const width = Math.max(28, Math.round(rect.width));
-      // We'll make the refresh button a square with the same height as the badge.
-      // But the user asked "size same as breadth of today's date" — using badge width to set button width
-      // and badge height to set button height, so it visually matches the badge square-ish area.
-      refreshBtn.style.width = width + 'px';
+      // set button to a square with this height
+      refreshBtn.style.width = height + 'px';
       refreshBtn.style.height = height + 'px';
     }
 
