@@ -17,6 +17,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#eaf2ff;background:linear-gradient(180deg,var(--bg) 0%, #0b1220 100%)}
 
+    /* outer wrapper --- narrower on mobile like screenshot */
     .wrap{max-width:420px;margin:10px auto;padding:12px}
 
     header{display:flex;gap:12px;align-items:center;margin-bottom:10px}
@@ -30,12 +31,14 @@
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
 
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
+    input[type=number], input[type=date], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
 
     .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
     button{padding:10px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700;background:var(--accent);color:#fff}
     button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .muted{color:var(--muted);font-size:13px}
 
+    /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
     thead th{text-align:left;color:var(--muted);font-size:13px;padding-left:10px}
     tbody tr { background: rgba(255,255,255,0.02); border-radius:8px; }
@@ -43,25 +46,50 @@
     .cell-amount{font-weight:700}
 
     .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700}
-
     .aside-list{display:flex;flex-direction:column;gap:10px}
     .offer-card{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
     .small{font-size:13px;color:var(--muted)}
     .schedule{margin-top:8px;font-size:13px;color:var(--muted)}
-
     footer{margin-top:12px;color:var(--muted);font-size:12px}
 
-    /* HIDE date + rate input + labels */
-    #firstDate, #labelDate, #annualRate, #labelRate {
-      display:none !important;
+    /* compact actions row like screenshot */
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .action-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:700}
+
+    /* mobile-friendly tweaks but KEEP table layout (no stacked rows) */
+    @media (max-width:480px){
+      .controls{flex-direction:column}
+      button{width:100%}
+      /* keep table as a normal table on small screens so header + columns remain */
+      table{width:100%; border-collapse:collapse; margin-top:12px}
+      thead th{padding:8px 10px;font-size:13px}
+      tbody tr{display:table-row; margin-bottom:8px}
+      td{display:table-cell; padding:10px}
+      /* ensure rounded row-like appearance: wrap each row cell with same background by styling cells */
+      tbody tr td { background: rgba(255,255,255,0.02); border-radius:8px; }
+      /* small devices: allow horizontal scroll if content overflows */
+      .card{overflow-x:auto}
+    }
+
+    /* smaller font for very small devices */
+    @media (max-width:360px){
+      h1{font-size:15px}
+      .logo{width:40px;height:40px}
+    }
+
+    /* ========== NEW: hide date and rate controls but keep logic ========== */
+    /* hide the label + input for date and rate */
+    #labelDate, #firstDate, #labelRate, #annualRate {
+      display: none !important;
     }
   </style>
 </head>
-
 <body>
   <div class="wrap">
     <header>
+      <!-- replace SO with provided image (file placed alongside HTML) -->
       <div class="logo" aria-hidden>
+        <!-- If you are hosting the logo next to this file, keep the filename. Otherwise replace src with data URI or absolute path. -->
         <img src="ACFL Logo PNG WhiteBG.png" alt="ACFL Logo" />
       </div>
       <div>
@@ -71,30 +99,33 @@
     </header>
 
     <div class="grid">
+      <!-- left: inputs + results table -->
       <div>
-        <div class="card">
+        <div class="card" aria-labelledby="inputs">
           <div id="inputs">
             <label>Principal Outstanding (₹)</label>
-            <input id="principal" type="number" min="0" step="1" value="0" />
+            <input id="principal" type="number" min="0" step="1" value="0" inputmode="numeric" />
 
             <label style="margin-top:10px">Interest Outstanding (₹)</label>
-            <input id="odToday" type="number" min="0" step="1" value="0" />
+            <input id="odToday" type="number" min="0" step="1" value="0" inputmode="numeric" />
 
+            <!-- RATE: hidden and fixed at 27% -->
             <label id="labelRate" style="margin-top:10px">Annual Interest Rate (%)</label>
-            <input id="annualRate" type="number" value="27" readonly />
+            <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" readonly />
 
-            <label id="labelDate" style="margin-top:10px">First EMI Date</label>
+            <!-- DATE: hidden -->
+            <label id="labelDate" style="margin-top:10px">First EMI Date (today)</label>
             <input id="firstDate" type="date" readonly />
 
             <div class="controls">
               <button id="recalc">Recalculate</button>
-              <button id="reset" class="ghost">Reset</button>
-              <button id="download" class="ghost">Download CSV</button>
-              <button id="copy" class="ghost">Copy Results</button>
+              <button id="reset" class="ghost action-ghost">Reset</button>
+              <button id="download" class="ghost action-ghost">Download CSV</button>
+              <button id="copy" class="ghost action-ghost">Copy Results</button>
             </div>
           </div>
 
-          <table id="results">
+          <table id="results" aria-live="polite">
             <thead>
               <tr>
                 <th>Outstanding (₹)</th>
@@ -107,37 +138,36 @@
             <tbody id="tbody"></tbody>
           </table>
 
-          <p class="muted">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × MonthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
+          <p class="muted" style="margin-top:10px">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × MonthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
       </div>
 
+      <!-- right: offer cards with schedule (they appear below on mobile) -->
       <aside>
         <div class="card aside-list">
-
           <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;">
-              <div><span class="pill">3+1</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">3+1</span></div>
               <div class="small" id="meta31"></div>
             </div>
             <div class="schedule" id="sched31"></div>
           </div>
 
           <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;">
-              <div><span class="pill">4+1</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">4+1</span></div>
               <div class="small" id="meta41"></div>
             </div>
             <div class="schedule" id="sched41"></div>
           </div>
 
           <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;">
-              <div><span class="pill">6+1</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">6+1</span></div>
               <div class="small" id="meta61"></div>
             </div>
             <div class="schedule" id="sched61"></div>
           </div>
-
         </div>
       </aside>
     </div>
@@ -145,197 +175,199 @@
     <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10.</footer>
   </div>
 
-<script>
-/* ================================
-   UTILITY
-=============================== */
-function formatINR(n){
-  if (isNaN(n)) return '-';
-  return new Intl.NumberFormat('en-IN', {
-    style:'currency',
-    currency:'INR',
-    maximumFractionDigits:0
-  }).format(Math.round(n));
-}
+  <script>
+    // Utility: format INR without paise
+    function formatINR(n){
+      if (isNaN(n)) return '-';
+      return new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0}).format(Math.round(n));
+    }
 
-function addMonthsKeepDay(date, months){
-  const d = new Date(date.valueOf());
-  const day = d.getDate();
-  d.setMonth(d.getMonth() + months);
-  if (d.getDate() !== day) d.setDate(0);
-  return d;
-}
+    // Keep date addMonths while preserving day where possible (fallback to end-of-month)
+    function addMonthsKeepDay(date, months){
+      const d = new Date(date.valueOf());
+      const day = d.getDate();
+      d.setMonth(d.getMonth() + months);
+      if (d.getDate() !== day){
+        d.setDate(0);
+      }
+      return d;
+    }
 
-function roundUp10(x){
-  return Math.ceil(x / 10) * 10;
-}
+    function roundUp10(x){
+      return Math.ceil(x / 10) * 10;
+    }
 
-/* ================================
-   CALCULATION
-=============================== */
-function calcForN(principal, odToday, monthlyRate, N){
-  const monthlyInterestOnPrincipal = principal * monthlyRate;
-  const futureOD = monthlyInterestOnPrincipal * N;
-  const total = principal + odToday + futureOD;
-  const rawInstallment = total / (N + 1);
-  const installment = roundUp10(rawInstallment);
-  const totalCollection = installment * N;
-  const discount = installment;
+    function calcForN(principal, odToday, monthlyRate, N){
+      const monthlyInterestOnPrincipal = principal * monthlyRate;
+      const futureOD = monthlyInterestOnPrincipal * N;
+      const total = principal + odToday + futureOD;
+      const rawInstallment = total / (N + 1);
+      const installment = roundUp10(rawInstallment);
+      const totalCollection = installment * N;
+      const discount = installment;
+      return {
+        monthlyInterestOnPrincipal,
+        futureOD,
+        total,
+        rawInstallment,
+        installment,
+        totalCollection,
+        discount
+      };
+    }
 
-  return { monthlyInterestOnPrincipal, futureOD, total, rawInstallment, installment, totalCollection, discount };
-}
+    // Elements
+    const elPrincipal = document.getElementById('principal');
+    const elOD = document.getElementById('odToday');
+    const elRate = document.getElementById('annualRate'); // hidden but used
+    const elDate = document.getElementById('firstDate');  // hidden but used for schedule
+    const elRecalc = document.getElementById('recalc');
+    const elReset = document.getElementById('reset');
+    const elDownload = document.getElementById('download');
+    const elCopy = document.getElementById('copy');
+    const tbody = document.getElementById('tbody');
 
-/* ================================
-   ELEMENTS
-=============================== */
-const elPrincipal = document.getElementById('principal');
-const elOD = document.getElementById('odToday');
-const elRate = document.getElementById('annualRate');
-const elDate = document.getElementById('firstDate');
-const tbody = document.getElementById('tbody');
+    const meta31 = document.getElementById('meta31');
+    const meta41 = document.getElementById('meta41');
+    const meta61 = document.getElementById('meta61');
+    const sched31 = document.getElementById('sched31');
+    const sched41 = document.getElementById('sched41');
+    const sched61 = document.getElementById('sched61');
 
-const meta31 = document.getElementById('meta31');
-const meta41 = document.getElementById('meta41');
-const meta61 = document.getElementById('meta61');
-const sched31 = document.getElementById('sched31');
-const sched41 = document.getElementById('sched41');
-const sched61 = document.getElementById('sched61');
+    (function setDefaultDateToday(){
+      const t = new Date();
+      const yyyy = t.getFullYear();
+      const mm = String(t.getMonth() + 1).padStart(2,'0');
+      const dd = String(t.getDate()).padStart(2,'0');
+      elDate.value = `${yyyy}-${mm}-${dd}`;
+    })();
 
-/* ================================
-   DATE AUTO-UPDATE (LOCAL MIDNIGHT)
-=============================== */
-function toLocalDateYYYYMMDD(d){
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  return `${yyyy}-${mm}-${dd}`;
-}
+    function debounce(fn, ms){
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(()=>fn(...args), ms);
+      };
+    }
 
-function setDateToTodayLocal(){
-  elDate.value = toLocalDateYYYYMMDD(new Date());
-}
+    function buildSchedule(firstDateStr, N){
+      const d0 = new Date(firstDateStr + 'T00:00:00');
+      const arr = [];
+      for(let i=0;i<N;i++){
+        const d = addMonthsKeepDay(d0, i);
+        arr.push(d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}));
+      }
+      return arr;
+    }
 
-function scheduleDateAutoUpdateAtMidnight(){
-  const now = new Date();
-  const nextMidnight = new Date(now);
-  nextMidnight.setHours(24,0,0,0);
-  const msUntil = nextMidnight - now;
+    function renderAll(){
+      const principal = Number(elPrincipal.value) || 0;
+      const odToday = Number(elOD.value) || 0;
+      // RATE is fixed at 27% (hidden input holds 27)
+      const annualRate = 27; // fixed value enforced here
+      const firstDate = elDate.value;
+      const monthlyRate = annualRate / 12 / 100;
 
-  setTimeout(() => {
-    setDateToTodayLocal();
-    renderAll();
-    setInterval(() => {
-      setDateToTodayLocal();
+      const offers = [
+        {label:'3+1', N:3},
+        {label:'4+1', N:4},
+        {label:'6+1', N:6}
+      ];
+
+      tbody.innerHTML = '';
+      const rows = [];
+
+      offers.forEach(off => {
+        const N = off.N;
+        const res = calcForN(principal, odToday, monthlyRate, N);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
+          <td>${off.label}</td>
+          <td>${formatINR(res.installment)}</td>
+          <td>${formatINR(res.totalCollection)}</td>
+          <td>${formatINR(res.discount)}</td>
+        `;
+        tbody.appendChild(tr);
+
+        const metaTxt = `Future Interest: ${formatINR(res.futureOD)} • Monthly interest: ${formatINR(res.monthlyInterestOnPrincipal)}`;
+        const sched = buildSchedule(firstDate, N);
+
+        if (off.N === 3){
+          meta31.textContent = metaTxt;
+          sched31.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
+        } else if (off.N === 4){
+          meta41.textContent = metaTxt;
+          sched41.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
+        } else if (off.N === 6){
+          meta61.textContent = metaTxt;
+          sched61.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
+        }
+
+        rows.push({
+          Outstanding: Math.round(principal + odToday + res.futureOD),
+          Offer: off.label,
+          Installment: res.installment,
+          TotalCollection: res.totalCollection,
+          Discount: res.discount
+        });
+      });
+
+      currentRows = rows;
+    }
+
+    function downloadCSV(rows){
+      const header = ['Outstanding','Offer','Installment','TotalCollection','Discount'];
+      const lines = [header.join(',')].concat(rows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(',')));
+      const csv = lines.join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'settlement_offers.csv';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    function copyText(rows){
+      let s = '';
+      rows.forEach(r=>{
+        s += `Outstanding: ${r.Outstanding}\nOffer: ${r.Offer}\nInstallment: ${r.Installment}\nTotalCollection: ${r.TotalCollection}\nDiscount: ${r.Discount}\n\n`;
+      });
+      return s;
+    }
+
+    let currentRows = [];
+    const debouncedRender = debounce(renderAll, 160);
+
+    elPrincipal.addEventListener('input', debouncedRender);
+    elOD.addEventListener('input', debouncedRender);
+    // rate and date inputs are hidden; keep listeners harmless
+    elRate.addEventListener('input', debouncedRender);
+    elDate.addEventListener('change', debouncedRender);
+
+    elRecalc.addEventListener('click', renderAll);
+    elReset.addEventListener('click', ()=>{
+      elPrincipal.value = 0;
+      elOD.value = 0;
+      // reset rate remains 27 (hidden)
+      elRate.value = 27;
+      (function(){ const t = new Date(); const yyyy = t.getFullYear(); const mm = String(t.getMonth() + 1).padStart(2,'0'); const dd = String(t.getDate()).padStart(2,'0'); elDate.value = `${yyyy}-${mm}-${dd}`; })();
       renderAll();
-    }, 24 * 60 * 60 * 1000);
-  }, msUntil);
-}
+    });
 
-setDateToTodayLocal();
-scheduleDateAutoUpdateAtMidnight();
+    elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
+    elCopy.addEventListener('click', async ()=>{
+      const txt = copyText(currentRows);
+      try{
+        await navigator.clipboard.writeText(txt);
+        alert('Results copied to clipboard');
+      } catch(e){
+        const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); ta.remove();
+        alert('Results copied to clipboard');
+      }
+    });
 
-/* ================================
-   RENDERING
-=============================== */
-function buildSchedule(dateStr, N){
-  const d0 = new Date(dateStr + 'T00:00:00');
-  const arr = [];
-  for(let i=0;i<N;i++){
-    const d = addMonthsKeepDay(d0, i);
-    arr.push(d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}));
-  }
-  return arr;
-}
-
-function renderAll(){
-  const principal = Number(elPrincipal.value) || 0;
-  const odToday = Number(elOD.value) || 0;
-  const annualRate = 27; // FIXED
-  const monthlyRate = annualRate / 12 / 100;
-  const firstDate = elDate.value;
-
-  const offers = [
-    {label:'3+1', N:3},
-    {label:'4+1', N:4},
-    {label:'6+1', N:6}
-  ];
-
-  tbody.innerHTML = '';
-  const rows = [];
-
-  offers.forEach(off=>{
-    const res = calcForN(principal, odToday, monthlyRate, off.N);
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
-      <td>${off.label}</td>
-      <td>${formatINR(res.installment)}</td>
-      <td>${formatINR(res.totalCollection)}</td>
-      <td>${formatINR(res.discount)}</td>
-    `;
-    tbody.appendChild(tr);
-
-    const metaTxt = `Future Interest: ${formatINR(res.futureOD)} • Monthly interest: ${formatINR(res.monthlyInterestOnPrincipal)}`;
-    const sched = buildSchedule(firstDate, off.N);
-
-    if(off.N===3){
-      meta31.textContent = metaTxt;
-      sched31.innerHTML = sched.map(s=>`• ${s}`).join('<br>');
-    }
-    if(off.N===4){
-      meta41.textContent = metaTxt;
-      sched41.innerHTML = sched.map(s=>`• ${s}`).join('<br>');
-    }
-    if(off.N===6){
-      meta61.textContent = metaTxt;
-      sched61.innerHTML = sched.map(s=>`• ${s}`).join('<br>');
-    }
-  });
-
-  currentRows = rows;
-}
-
-/* ================================
-   ACTIONS
-=============================== */
-let currentRows = [];
-
-document.getElementById('recalc').addEventListener('click', renderAll);
-
-document.getElementById('reset').addEventListener('click', ()=>{
-  elPrincipal.value = 0;
-  elOD.value = 0;
-  setDateToTodayLocal();
-  renderAll();
-});
-
-document.getElementById('download').addEventListener('click', ()=>{
-  const header = ['Outstanding','Offer','Installment','TotalCollection','Discount'];
-  const lines = [header.join(',')].concat(
-    currentRows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(','))
-  );
-  const csv = lines.join('\n');
-  const blob = new Blob([csv],{type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'settlement_offers.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-});
-
-document.getElementById('copy').addEventListener('click', async ()=>{
-  let txt = '';
-  currentRows.forEach(r=>{
-    txt += `Outstanding: ${r.Outstanding}\nOffer: ${r.Offer}\nInstallment: ${r.Installment}\nTotalCollection: ${r.TotalCollection}\nDiscount: ${r.Discount}\n\n`;
-  });
-  await navigator.clipboard.writeText(txt);
-  alert('Results copied to clipboard');
-});
-
-renderAll();
-</script>
+    // initial render
+    renderAll();
+  </script>
 </body>
 </html>
