@@ -45,6 +45,25 @@
       border: 0 !important;
     }
 
+    /* Download button gray */
+    #download {
+      background: #6c757d !important; /* gray */
+      color: #fff !important;
+      border: 0 !important;
+    }
+
+    /* Today's Date badge */
+    #todayDisplay {
+      display:inline-block;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight:700;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
     thead th{text-align:left;color:var(--muted);font-size:13px;padding-left:10px}
@@ -84,8 +103,7 @@
       .logo{width:40px;height:40px}
     }
 
-    /* ========== NEW: hide date and rate controls but keep logic ========== */
-    /* hide the label + input for date and rate */
+    /* ========== hide date and rate controls but keep logic ========== */
     #labelDate, #firstDate, #labelRate, #annualRate {
       display: none !important;
     }
@@ -110,7 +128,7 @@
       <div>
         <div class="card" aria-labelledby="inputs">
           <div id="inputs">
-            <!-- NEW: visible Today's Date above Principal -->
+            <!-- Today's Date styled badge -->
             <div id="todayDisplay" class="muted" style="margin-bottom:8px"></div>
 
             <label>Principal Outstanding (₹)</label>
@@ -129,10 +147,10 @@
 
             <div class="controls">
               <button id="recalc">Recalculate</button>
-              <!-- reset is green now -->
+              <!-- reset is green -->
               <button id="reset" class="ghost action-ghost">Reset</button>
+              <!-- download is gray -->
               <button id="download" class="ghost action-ghost">Download CSV</button>
-              <!-- Copy button removed as requested -->
             </div>
           </div>
 
@@ -359,7 +377,6 @@
     });
 
     elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
-    // Copy button and handler removed per request
 
     // initial render
     renderAll();
