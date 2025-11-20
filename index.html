@@ -41,7 +41,7 @@
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
     thead th{text-align:left;color:var(--muted);font-size:13px;padding-left:10px}
-    tbody tr { background: rgba(255,255,255,0.02); border-radius:8px; }
+    tbody tr { background:rgba(255,255,255,0.02); border-radius:8px; }
     td{padding:10px;border-radius:8px;font-size:14px}
     .cell-amount{font-weight:700}
 
@@ -234,13 +234,40 @@
     const sched41 = document.getElementById('sched41');
     const sched61 = document.getElementById('sched61');
 
-    (function setDefaultDateToday(){
-      const t = new Date();
-      const yyyy = t.getFullYear();
-      const mm = String(t.getMonth() + 1).padStart(2,'0');
-      const dd = String(t.getDate()).padStart(2,'0');
-      elDate.value = `${yyyy}-${mm}-${dd}`;
-    })();
+    // ====== NEW: set date from system and auto-update at local midnight ======
+    function toLocalDateForInput(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function setDateToTodayFromSystem(){
+      const now = new Date();
+      elDate.value = toLocalDateForInput(now);
+    }
+
+    function scheduleSystemMidnightUpdate(){
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24,0,0,0); // next local midnight
+      const msUntil = nextMidnight - now;
+
+      setTimeout(() => {
+        setDateToTodayFromSystem();
+        renderAll();
+        // then repeat every 24 hours
+        setInterval(() => {
+          setDateToTodayFromSystem();
+          renderAll();
+        }, 24 * 60 * 60 * 1000);
+      }, msUntil);
+    }
+
+    // initialize date from system and schedule updates
+    setDateToTodayFromSystem();
+    scheduleSystemMidnightUpdate();
+    // ====== END new date logic ======
 
     function debounce(fn, ms){
       let t;
