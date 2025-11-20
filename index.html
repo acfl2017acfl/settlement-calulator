@@ -88,7 +88,7 @@
       </div>
       <div>
         <h1>Settlement Offer Calculator</h1>
-        <p class="lead">Principal + OD + future OD (per offer) → divide by (N+1). Installments always rounded UP to next ₹10.</p>
+        <p class="lead">Principal + InterestOutstanding + Future Interest (per offer) → divide by (N+1). Installments always rounded UP to next ₹10.</p>
       </div>
     </header>
 
@@ -130,7 +130,7 @@
             <tbody id="tbody"></tbody>
           </table>
 
-          <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
+          <p class="muted" style="margin-top:10px">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
       </div>
 
@@ -164,7 +164,7 @@
       </aside>
     </div>
 
-    <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10. 'Discount' shown equals one installment (the "+1").</footer>
+    <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10.</footer>
   </div>
 
   <script>
