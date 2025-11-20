@@ -64,28 +64,35 @@
       border-radius: 8px;
       font-weight:700;
       font-size:13px;
+      line-height:1;
+      max-width:70%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
-    /* Refresh button (green background with white SVG). Size is synced by JS to match the badge height) */
+    /* Refresh button (green background with white SVG). Force square sizing via JS.
+       Important CSS: remove extra padding and allow JS to set exact width/height */
     #refreshBtn {
       display:inline-flex;
       align-items:center;
       justify-content:center;
       background: #28a745;
       border-radius: 8px;
-      padding: 6px;
+      padding: 0; /* removed padding so width/height are exact */
       border: 0;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(40,167,69,0.15);
-      /* width/height will be set dynamically to match #todayDisplay height (keeps it square) */
-      width: auto;
-      height: auto;
-      min-width: 0;
-      min-height: 0;
       flex: 0 0 auto;
+      line-height:0;
+      overflow:hidden;
     }
     #refreshBtn:active { transform: translateY(1px); }
-    #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; }
+
+    /* SVG styling: use preserveAspectRatio and fill explicitly */
+    #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; vertical-align:middle; }
+    /* if high-DPI or different rendering, ensure path has fill */
+    #refreshBtn svg path { fill: #fff; }
 
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
@@ -119,11 +126,9 @@
       /* small devices: allow horizontal scroll if content overflows */
       .card{overflow-x:auto}
 
-      /* Ensure todayRow doesn't wrap and the small button stays square */
-      #todayRow { gap:6px; }
+      /* Slightly smaller badge on narrow screens */
       #todayDisplay { font-size:12px; padding:6px 8px; }
-      /* on very narrow screens, cap the badge width to avoid pushing layout */
-      #todayDisplay { max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      #todayRow { gap:6px; }
     }
 
     /* smaller font for very small devices */
@@ -161,9 +166,9 @@
             <div id="todayRow">
               <div id="todayDisplay" class="muted" style="margin-bottom:0"></div>
               <button id="refreshBtn" title="Refresh page (reload)" aria-label="Refresh page">
-                <!-- white refresh SVG icon -->
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                  <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L8 5l4 4V6c2.21 0 4.2.9 5.65 2.35A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78l1.43-1.43z"/>
+                <!-- crisp white refresh SVG icon -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" role="img">
+                  <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L8 5l4 4V6c2.21 0 4.2.9 5.65 2.35A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78l1.43-1.43z" fill="#fff"/>
                 </svg>
               </button>
             </div>
@@ -423,7 +428,6 @@
     refreshBtn.addEventListener('click', () => {
       // visual affordance: briefly disable button to prevent double clicks
       refreshBtn.disabled = true;
-      // small timeout to allow visual effect
       setTimeout(()=> location.reload(), 40);
     });
 
@@ -436,10 +440,13 @@
       // compute the visible size of the badge
       const rect = todayDisplay.getBoundingClientRect();
       // Use badge height to make a square button (avoids horizontal elongation on mobile)
+      // Add 0px buffer; you can adjust +2 or -2 if you want exact visual tweak
       const height = Math.max(28, Math.round(rect.height));
       // set button to a square with this height
       refreshBtn.style.width = height + 'px';
       refreshBtn.style.height = height + 'px';
+      // ensure border-radius remains visually consistent
+      refreshBtn.style.borderRadius = Math.max(6, Math.round(height * 0.2)) + 'px';
     }
 
     // initial sync (already called after setting date but call again to be safe)
