@@ -13,8 +13,6 @@
       --glass: rgba(255,255,255,0.03);
       --success:#4dd0e1;
       --card-grad: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-      --green:#28a745;
-      --gray:#6c757d;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#eaf2ff;background:linear-gradient(180deg,var(--bg) 0%, #0b1220 100%)}
@@ -42,56 +40,49 @@
 
     /* Reset button specific green */
     #reset {
-      background: var(--green) !important; /* green */
+      background: #28a745 !important; /* green */
       color: #fff !important;
       border: 0 !important;
     }
 
     /* Download button gray */
     #download {
-      background: var(--gray) !important; /* gray */
+      background: #6c757d !important; /* gray */
       color: #fff !important;
       border: 0 !important;
     }
 
+    /* Today's Date badge row (wraps badge + refresh button) */
+    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; }
+
     /* Today's Date badge */
     #todayDisplay {
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+      display:inline-block;
       background: var(--accent);
       color: #ffffff;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 8px;
       font-weight:700;
       font-size:13px;
-      margin-bottom:8px;
-      min-height:36px;
     }
 
-    /* Refresh SVG button styled to match today's badge size/breadth visually */
+    /* Refresh button (green background with white SVG). Size is synced by JS to match the badge breadth/height) */
     #refreshBtn {
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      background: var(--green);
-      color: #fff;
-      padding: 8px 12px;      /* match padding of todayDisplay */
-      border-radius: 8px;     /* same radius */
-      margin-left:8px;
-      cursor:pointer;
-      border:0;
-      min-height:36px;        /* match height */
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      background: #28a745;
+      border-radius: 8px;
+      padding: 6px;
+      border: 0;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(40,167,69,0.15);
+      /* width/height will be set dynamically to match #todayDisplay */
+      min-width: 28px;
+      min-height: 28px;
     }
-    #refreshBtn svg{
-      width:20px;
-      height:20px;
-      display:block;
-      stroke: #fff;
-      stroke-width:1.8;
-      fill: none;
-    }
+    #refreshBtn:active { transform: translateY(1px); }
+    #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; }
 
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
@@ -157,16 +148,13 @@
       <div>
         <div class="card" aria-labelledby="inputs">
           <div id="inputs">
-            <!-- Today's Date styled badge with bigger green SVG refresh button to the right -->
-            <div style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
-              <div id="todayDisplay" class="muted"></div>
-
-              <!-- green refresh button sized to match Today's Date visually -->
-              <button id="refreshBtn" aria-label="Refresh" title="Refresh">
-                <!-- SVG circular arrow (white stroke) -->
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M21 12a9 9 0 10-1.06 4.17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <path d="M21 3v6h-6" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"></path>
+            <!-- Today's Date styled badge + refresh button wrapper -->
+            <div id="todayRow">
+              <div id="todayDisplay" class="muted" style="margin-bottom:0"></div>
+              <button id="refreshBtn" title="Refresh page (reload)" aria-label="Refresh page">
+                <!-- white refresh SVG icon -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                  <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4V1L8 5l4 4V6c2.21 0 4.2.9 5.65 2.35A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78l1.43-1.43z"/>
                 </svg>
               </button>
             </div>
@@ -314,6 +302,9 @@
       // set visible today's date text (format: DD-MMM-YYYY)
       const vis = t.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       if (todayDisplay) todayDisplay.textContent = `Today's Date: ${vis}`;
+
+      // sync refresh button size after element has text
+      syncRefreshSize();
     })();
 
     function debounce(fn, ms){
@@ -412,20 +403,51 @@
     elRecalc.addEventListener('click', renderAll);
 
     // Reset now reloads the full page
-    elReset.addEventListener('click', ()=>{
+    elReset.addEventListener('click', ()=> {
       // full page refresh
       location.reload();
     });
 
     elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
 
-    // Refresh SVG button reloads page
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', ()=> location.reload());
-    }
+    // refresh button triggers full reload
+    refreshBtn.addEventListener('click', () => {
+      // visual affordance: briefly disable button to prevent double clicks
+      refreshBtn.disabled = true;
+      // small timeout to allow visual effect
+      setTimeout(()=> location.reload(), 40);
+    });
 
     // initial render
     renderAll();
+
+    /***** Sync refresh button size to match the Today's Date badge breadth/height *****/
+    function syncRefreshSize(){
+      if (!todayDisplay || !refreshBtn) return;
+      // compute the visible size of the badge
+      const rect = todayDisplay.getBoundingClientRect();
+      // Use badge height as height, and badge width as width
+      // Add small padding so icon fits nicely
+      const height = Math.max(28, Math.round(rect.height));
+      const width = Math.max(28, Math.round(rect.width));
+      // We'll make the refresh button a square with the same height as the badge.
+      // But the user asked "size same as breadth of today's date" — using badge width to set button width
+      // and badge height to set button height, so it visually matches the badge square-ish area.
+      refreshBtn.style.width = width + 'px';
+      refreshBtn.style.height = height + 'px';
+    }
+
+    // initial sync (already called after setting date but call again to be safe)
+    syncRefreshSize();
+
+    // Keep it in sync on window resize and when the today's text changes
+    window.addEventListener('resize', debounce(syncRefreshSize, 80));
+
+    // Observe content changes to the todayDisplay
+    if (window.MutationObserver) {
+      const mo = new MutationObserver(debounce(syncRefreshSize, 60));
+      mo.observe(todayDisplay, { childList: true, subtree: true, characterData: true });
+    }
   </script>
 </body>
 </html>
