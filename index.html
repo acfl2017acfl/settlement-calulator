@@ -307,19 +307,23 @@
     const refreshBtn = document.getElementById('refreshBtn');
     const todayRow = document.getElementById('todayRow');
 
-    (function setDefaultDateToday(){
+    // set today's date from system clock into both visible badge and hidden date input
+    function setTodayFromSystem(){
       const t = new Date();
       const yyyy = t.getFullYear();
       const mm = String(t.getMonth() + 1).padStart(2,'0');
       const dd = String(t.getDate()).padStart(2,'0');
+      // update hidden firstDate (ISO format yyyy-mm-dd)
       elDate.value = `${yyyy}-${mm}-${dd}`;
-
-      // set visible today's date text (format: DD-MMM-YYYY)
+      // update visible badge in DD-MMM-YYYY
       const vis = t.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
       if (todayDisplay) todayDisplay.textContent = `Today's Date: ${vis}`;
+    }
 
-      // sync refresh button size after element has text
-      syncRefreshSize();
+    // initial setup: set date from system and sync refresh button
+    (function init(){
+      setTodayFromSystem();
+      syncRefreshSize(); // size the refresh button and compute available width for badge
     })();
 
     function debounce(fn, ms){
@@ -417,19 +421,26 @@
 
     elRecalc.addEventListener('click', renderAll);
 
-    // Reset now reloads the full page
+    // Reset now reloads the full page (keeps original behavior)
     elReset.addEventListener('click', ()=> {
-      // full page refresh
+      // full page refresh (let browser decide caching)
       location.reload();
     });
 
     elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
 
-    // refresh button triggers full reload
+    // New behavior: Refresh button reads current system date and updates UI without forcing a full page reload.
     refreshBtn.addEventListener('click', () => {
-      // visual affordance: briefly disable button to prevent double clicks
+      // small visual feedback: briefly disable
       refreshBtn.disabled = true;
-      setTimeout(()=> location.reload(), 40);
+      // update system date display and hidden input
+      setTodayFromSystem();
+      // recompute sizes (badge width may have changed)
+      syncRefreshSize();
+      // re-render table & schedules with the updated date
+      renderAll();
+      // re-enable button after tiny delay
+      setTimeout(()=> { refreshBtn.disabled = false; }, 120);
     });
 
     // initial render
@@ -451,7 +462,6 @@
 
       // Compute available width for the badge text inside the row:
       // row width - button width - gap - small buffer
-      // Gap is around 8px (CSS). Use 8 as default; if spacing differs, buffer handles it.
       const gap = 8;
       const buffer = 6; // small breathing room
       const available = Math.max(0, Math.round(rowRect.width - height - gap - buffer));
@@ -459,20 +469,29 @@
       todayDisplay.style.maxWidth = available + 'px';
     }
 
-    // initial sync (already called after setting date but call again to be safe)
+    // initial sync (already called in init but call again after render)
     syncRefreshSize();
 
     // Keep it in sync on window resize and when the today's text changes
     window.addEventListener('resize', debounce(syncRefreshSize, 80));
 
-    // Observe content changes to the todayDisplay
+    // Observe content changes to the todayDisplay or structural changes in the row
     if (window.MutationObserver) {
       const mo = new MutationObserver(debounce(syncRefreshSize, 60));
       mo.observe(todayDisplay, { childList: true, subtree: true, characterData: true });
-      // Also observe row size changes (in case wrap/parent changes)
       const mo2 = new MutationObserver(debounce(syncRefreshSize, 60));
       mo2.observe(todayRow, { attributes: true, childList: true, subtree: true });
     }
+
+    // Also update date if the page becomes visible again (useful if system date changed while tab was in background)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        // update system date & refresh UI
+        setTodayFromSystem();
+        syncRefreshSize();
+        renderAll();
+      }
+    });
   </script>
 </body>
 </html>
