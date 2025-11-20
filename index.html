@@ -63,11 +63,12 @@
       tr { margin-bottom:12px; }
       td { position: relative; padding-left: 48%; border-radius:10px; }
       td::before { position: absolute; left:12px; width:40%; white-space:nowrap; font-weight:700; color:var(--muted); font-size:13px }
+      /* Updated order to show Offer first, then Outstanding, Installment, Total, Discount */
       td:nth-of-type(1)::before { content:"Offer"; }
-      td:nth-of-type(2)::before { content:"Outstanding"; }
-      td:nth-of-type(3)::before { content:"Installment"; }
-      td:nth-of-type(4)::before { content:"Total"; }
-      td:nth-of-type(5)::before { content:"Discount"; }
+      td:nth-of-type(2)::before { content:"Outstanding (₹)"; }
+      td:nth-of-type(3)::before { content:"Installment (₹)"; }
+      td:nth-of-type(4)::before { content:"Total Collection (₹)"; }
+      td:nth-of-type(5)::before { content:"Discount (₹)"; }
     }
 
     /* smaller font for very small devices */
@@ -119,15 +120,15 @@
           <table id="results" aria-live="polite">
             <thead>
               <tr>
-                <th>Offer<\/th>
-                <th>Outstanding (₹)<\/th>
-                <th>Installment (₹)<\/th>
-                <th>Total Collection (₹)<\/th>
-                <th>Discount (₹)<\/th>
-              <\/tr>
-            <\/thead>
-            <tbody id="tbody"><\/tbody>
-          <\/table>
+                <th>Offer</th>
+                <th>Outstanding (₹)</th>
+                <th>Installment (₹)</th>
+                <th>Total Collection (₹)</th>
+                <th>Discount (₹)</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
 
           <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
@@ -271,6 +272,7 @@
         const N = off.N;
         const res = calcForN(principal, odToday, monthlyRate, N);
         const tr = document.createElement('tr');
+        // Updated column order: Offer | Outstanding | Installment | Total Collection | Discount
         tr.innerHTML = `
           <td>${off.label}</td>
           <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
@@ -307,8 +309,9 @@
     }
 
     function downloadCSV(rows){
+      // Updated header order to match the table presentation
       const header = ['Offer','Outstanding','Installment','TotalCollection','Discount'];
-      const lines = [header.join(',')].concat(rows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(',')));
+      const lines = [header.join(',')].concat(rows.map(r => [r.Offer, r.Outstanding, r.Installment, r.TotalCollection, r.Discount].join(',')));
       const csv = lines.join('\n');
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
@@ -317,15 +320,10 @@
     }
 
     function copyText(rows){
+      // Copy in single-header tabular lines like: 3+1 \t ₹58,375 \t ₹14,600 \t ₹43,800 \t ₹14,600
       let s = '';
       rows.forEach(r=>{
-        s += `Offer: ${r.Offer}
-Outstanding: ${r.Outstanding}
-Installment: ${r.Installment}
-TotalCollection: ${r.TotalCollection}
-Discount: ${r.Discount}
-
-`;
+        s += `${r.Offer}\t${formatINR(r.Outstanding)}\t${formatINR(r.Installment)}\t${formatINR(r.TotalCollection)}\t${formatINR(r.Discount)}\n`;
       });
       return s;
     }
