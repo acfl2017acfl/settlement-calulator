@@ -335,8 +335,8 @@
 
     elRecalc.addEventListener('click', renderAll);
     elReset.addEventListener('click', ()=>{
-      elPrincipal.value = 50000;
-      elOD.value = 5000;
+      elPrincipal.value = 0;
+      elOD.value = 0;
       elRate.value = 27;
       (function(){ const t = new Date(); const yyyy = t.getFullYear(); const mm = String(t.getMonth() + 1).padStart(2,'0'); const dd = String(t.getDate()).padStart(2,'0'); elDate.value = `${yyyy}-${mm}-${dd}`; })();
       renderAll();
