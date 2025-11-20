@@ -4,157 +4,159 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Settlement Offer Calculator (3+1, 4+1, 6+1) - Mobile</title>
+
   <style>
     :root{
-      --bg:#071026; /* deep navy */
-      --panel:#0b1220; /* card */
+      --bg:#071026;
+      --panel:#0b1220;
       --muted:#98a6bf;
-      --accent:#e85222; /* requested accent */
+      --accent:#e85222;
       --glass: rgba(255,255,255,0.03);
-      --success:#4dd0e1;
-      --card-grad: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
     }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#eaf2ff;background:linear-gradient(180deg,var(--bg) 0%, #0b1220 100%)}
 
-    /* outer wrapper --- narrower on mobile like screenshot */
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:#eaf2ff;
+      background:linear-gradient(180deg,var(--bg) 0%, #0b1220 100%);
+    }
+
     .wrap{max-width:420px;margin:10px auto;padding:12px}
 
     header{display:flex;gap:12px;align-items:center;margin-bottom:10px}
-    .logo{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.04);padding:6px}
-    .logo img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+    .logo{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid rgba(255,255,255,0.04)}
+    .logo img{max-width:100%;max-height:100%;object-fit:contain}
+
     h1{margin:0;font-size:16px}
-    p.lead{margin:4px 0 0;color:var(--muted);font-size:12px;line-height:1.2}
+    p.lead{margin:4px 0 0;color:var(--muted);font-size:12px}
 
-    .card{background:var(--card-grad);padding:12px;border-radius:12px;border:1px solid var(--glass);box-shadow:0 8px 28px rgba(2,6,23,0.6)}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--glass);
+      box-shadow:0 8px 28px rgba(2,6,23,0.6);
+    }
 
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    label{font-size:13px;color:var(--muted);margin-bottom:6px}
 
-    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-    input[type=number], input[type=date], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
+    input[type=number], input[type=date]{
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,0.04);
+      background:transparent;
+      color:inherit;
+      font-size:15px;
+    }
 
     .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    button{padding:10px 12px;border-radius:8px;border:0;cursor:pointer;font-weight:700;background:var(--accent);color:#fff}
-    button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+
+    /* MAIN ORANGE BUTTON */
+    button{
+      padding:10px 12px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      background:var(--accent);
+      color:#fff;
+    }
+
+    /* GREEN RESET BUTTON */
+    #reset{
+      background:#28a745 !important;
+    }
+
+    /* GRAY CSV BUTTON */
+    #download{
+      background:#6c757d !important;
+    }
+
     .muted{color:var(--muted);font-size:13px}
 
-    /* Reset button specific green */
-    #reset {
-      background: #28a745 !important; /* green */
-      color: #fff !important;
-      border: 0 !important;
-    }
-
-    /* Download button gray */
-    #download {
-      background: #6c757d !important; /* gray */
-      color: #fff !important;
-      border: 0 !important;
-    }
-
-    /* Today's Date badge */
-    #todayDisplay {
-      display:inline-block;
-      background: var(--accent);
-      color: #ffffff;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-weight:700;
-      font-size:13px;
-      margin-bottom:8px;
-    }
-
-    /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
     thead th{text-align:left;color:var(--muted);font-size:13px;padding-left:10px}
-    tbody tr { background: rgba(255,255,255,0.02); border-radius:8px; }
+    tbody tr{background:rgba(255,255,255,0.02);border-radius:8px}
     td{padding:10px;border-radius:8px;font-size:14px}
     .cell-amount{font-weight:700}
 
-    .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700}
-    .aside-list{display:flex;flex-direction:column;gap:10px}
-    .offer-card{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
-    .small{font-size:13px;color:var(--muted)}
-    .schedule{margin-top:8px;font-size:13px;color:var(--muted)}
-    footer{margin-top:12px;color:var(--muted);font-size:12px}
-
-    /* compact actions row like screenshot */
-    .top-actions{display:flex;gap:8px;align-items:center}
-    .action-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:700}
-
-    /* mobile-friendly tweaks but KEEP table layout (no stacked rows) */
-    @media (max-width:480px){
-      .controls{flex-direction:column}
-      button{width:100%}
-      /* keep table as a normal table on small screens so header + columns remain */
-      table{width:100%; border-collapse:collapse; margin-top:12px}
-      thead th{padding:8px 10px;font-size:13px}
-      tbody tr{display:table-row; margin-bottom:8px}
-      td{display:table-cell; padding:10px}
-      /* ensure rounded row-like appearance: wrap each row cell with same background by styling cells */
-      tbody tr td { background: rgba(255,255,255,0.02); border-radius:8px; }
-      /* small devices: allow horizontal scroll if content overflows */
-      .card{overflow-x:auto}
-    }
-
-    /* smaller font for very small devices */
-    @media (max-width:360px){
-      h1{font-size:15px}
-      .logo{width:40px;height:40px}
-    }
-
-    /* ========== hide date and rate controls but keep logic ========== */
+    /* Hide date & rate inputs */
     #labelDate, #firstDate, #labelRate, #annualRate {
-      display: none !important;
+      display:none !important;
+    }
+
+    /* Style Today’s Date box */
+    #todayDisplay{
+      background:var(--accent);
+      color:white;
+      padding:6px 10px;
+      border-radius:6px;
+      font-size:14px;
+      font-weight:600;
+    }
+
+    /* Refresh icon style */
+    #refreshIcon{
+      cursor:pointer;
+      background:#28a745;
+      color:white;
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      font-weight:bold;
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
+
     <header>
-      <!-- replace SO with provided image (file placed alongside HTML) -->
-      <div class="logo" aria-hidden>
-        <!-- If you are hosting the logo next to this file, keep the filename. Otherwise replace src with data URI or absolute path. -->
+      <div class="logo">
         <img src="ACFL Logo PNG WhiteBG.png" alt="ACFL Logo" />
       </div>
       <div>
         <h1>Settlement Offer Calculator</h1>
-        <p class="lead">Principal + Interest Outstanding + Future Interest (per offer) → Divide by (N+1). Installments always rounded UP to next ₹10.</p>
+        <p class="lead">Principal + Interest Outstanding + Future Interest → divide by (N+1)</p>
       </div>
     </header>
 
+    <!-- TODAY’S DATE + REFRESH ICON -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div id="todayDisplay"></div>
+      <div id="refreshIcon" title="Refresh">&#10227;</div>
+    </div>
+
     <div class="grid">
-      <!-- left: inputs + results table -->
       <div>
-        <div class="card" aria-labelledby="inputs">
-          <div id="inputs">
-            <!-- Today's Date styled badge -->
-            <div id="todayDisplay" class="muted" style="margin-bottom:8px"></div>
+        <div class="card">
 
-            <label>Principal Outstanding (₹)</label>
-            <input id="principal" type="number" min="0" step="1" value="0" inputmode="numeric" />
+          <label>Principal Outstanding (₹)</label>
+          <input id="principal" type="number" min="0" value="0"/>
 
-            <label style="margin-top:10px">Interest Outstanding (₹)</label>
-            <input id="odToday" type="number" min="0" step="1" value="0" inputmode="numeric" />
+          <label style="margin-top:10px">Interest Outstanding (₹)</label>
+          <input id="odToday" type="number" min="0" value="0"/>
 
-            <!-- RATE: hidden and fixed at 27% -->
-            <label id="labelRate" style="margin-top:10px">Annual Interest Rate (%)</label>
-            <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" readonly />
+          <!-- Hidden fixed rate -->
+          <input id="annualRate" type="number" value="27" readonly/>
 
-            <!-- DATE: hidden -->
-            <label id="labelDate" style="margin-top:10px">First EMI Date (today)</label>
-            <input id="firstDate" type="date" readonly />
+          <!-- Hidden date -->
+          <input id="firstDate" type="date" readonly/>
 
-            <div class="controls">
-              <button id="recalc">Recalculate</button>
-              <!-- reset is green -->
-              <button id="reset" class="ghost action-ghost">Reset</button>
-              <!-- download is gray -->
-              <button id="download" class="ghost action-ghost">Download CSV</button>
-            </div>
+          <div class="controls">
+            <button id="recalc">Recalculate</button>
+            <button id="reset">Reset</button>
+            <button id="download">Download CSV</button>
           </div>
 
-          <table id="results" aria-live="polite">
+          <table id="results">
             <thead>
               <tr>
                 <th>Outstanding (₹)</th>
@@ -167,219 +169,114 @@
             <tbody id="tbody"></tbody>
           </table>
 
-          <p class="muted" style="margin-top:10px">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × MonthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
       </div>
-
-      <!-- right: offer cards with schedule (they appear below on mobile) -->
-      <aside>
-        <div class="card aside-list">
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">3+1</span></div>
-              <div class="small" id="meta31"></div>
-            </div>
-            <div class="schedule" id="sched31"></div>
-          </div>
-
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">4+1</span></div>
-              <div class="small" id="meta41"></div>
-            </div>
-            <div class="schedule" id="sched41"></div>
-          </div>
-
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill" style="background:linear-gradient(90deg,var(--accent),#ff8a5a);color:#fff">6+1</span></div>
-              <div class="small" id="meta61"></div>
-            </div>
-            <div class="schedule" id="sched61"></div>
-          </div>
-        </div>
-      </aside>
     </div>
 
-    <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10.</footer>
+    <footer class="muted">Installment is rounded UP to nearest ₹10.</footer>
   </div>
 
   <script>
-    // Utility: format INR without paise
     function formatINR(n){
-      if (isNaN(n)) return '-';
-      return new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0}).format(Math.round(n));
+      return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(Math.round(n));
     }
 
-    // Keep date addMonths while preserving day where possible (fallback to end-of-month)
     function addMonthsKeepDay(date, months){
       const d = new Date(date.valueOf());
       const day = d.getDate();
       d.setMonth(d.getMonth() + months);
-      if (d.getDate() !== day){
-        d.setDate(0);
-      }
+      if(d.getDate() !== day) d.setDate(0);
       return d;
     }
 
-    function roundUp10(x){
-      return Math.ceil(x / 10) * 10;
-    }
+    function roundUp10(x){ return Math.ceil(x/10)*10; }
 
-    function calcForN(principal, odToday, monthlyRate, N){
-      const monthlyInterestOnPrincipal = principal * monthlyRate;
-      const futureOD = monthlyInterestOnPrincipal * N;
-      const total = principal + odToday + futureOD;
-      const rawInstallment = total / (N + 1);
-      const installment = roundUp10(rawInstallment);
-      const totalCollection = installment * N;
-      const discount = installment;
+    function calcForN(P, OD, r, N){
+      const mInt = P*r;
+      const future = mInt*N;
+      const total = P + OD + future;
+      const inst = roundUp10(total/(N+1));
       return {
-        monthlyInterestOnPrincipal,
-        futureOD,
-        total,
-        rawInstallment,
-        installment,
-        totalCollection,
-        discount
+        futureOD:future,
+        monthlyInterest:mInt,
+        installment:inst,
+        totalCollection:inst*N,
+        totalOutstanding: total,
+        discount:inst
       };
     }
 
-    // Elements
-    const elPrincipal = document.getElementById('principal');
-    const elOD = document.getElementById('odToday');
-    const elRate = document.getElementById('annualRate'); // hidden but used
-    const elDate = document.getElementById('firstDate');  // hidden but used for schedule
-    const elRecalc = document.getElementById('recalc');
-    const elReset = document.getElementById('reset');
-    const elDownload = document.getElementById('download');
-    const tbody = document.getElementById('tbody');
+    const elP = document.getElementById("principal");
+    const elOD = document.getElementById("odToday");
+    const elRate = document.getElementById("annualRate");
+    const elDate = document.getElementById("firstDate");
+    const tbody = document.getElementById("tbody");
+    const todayDisplay = document.getElementById("todayDisplay");
 
-    const meta31 = document.getElementById('meta31');
-    const meta41 = document.getElementById('meta41');
-    const meta61 = document.getElementById('meta61');
-    const sched31 = document.getElementById('sched31');
-    const sched41 = document.getElementById('sched41');
-    const sched61 = document.getElementById('sched61');
-    const todayDisplay = document.getElementById('todayDisplay');
-
-    (function setDefaultDateToday(){
+    // SHOW TODAY'S DATE
+    function updateToday(){
       const t = new Date();
-      const yyyy = t.getFullYear();
-      const mm = String(t.getMonth() + 1).padStart(2,'0');
       const dd = String(t.getDate()).padStart(2,'0');
+      const mm = String(t.getMonth()+1).padStart(2,'0');
+      const yyyy = t.getFullYear();
+      todayDisplay.textContent = "Today's Date: " + dd + "-" + mm + "-" + yyyy;
       elDate.value = `${yyyy}-${mm}-${dd}`;
-
-      // set visible today's date text (format: DD-MMM-YYYY)
-      const vis = t.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      if (todayDisplay) todayDisplay.textContent = `Today's Date: ${vis}`;
-    })();
-
-    function debounce(fn, ms){
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(()=>fn(...args), ms);
-      };
     }
+    updateToday();
 
-    function buildSchedule(firstDateStr, N){
-      const d0 = new Date(firstDateStr + 'T00:00:00');
-      const arr = [];
-      for(let i=0;i<N;i++){
-        const d = addMonthsKeepDay(d0, i);
-        arr.push(d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}));
-      }
-      return arr;
-    }
+    function render(){
+      const P = Number(elP.value)||0;
+      const OD = Number(elOD.value)||0;
+      const rate = 27/12/100;
 
-    function renderAll(){
-      const principal = Number(elPrincipal.value) || 0;
-      const odToday = Number(elOD.value) || 0;
-      // RATE is fixed at 27% (hidden input holds 27)
-      const annualRate = 27; // fixed value enforced here
-      const firstDate = elDate.value;
-      const monthlyRate = annualRate / 12 / 100;
+      tbody.innerHTML="";
 
-      const offers = [
-        {label:'3+1', N:3},
-        {label:'4+1', N:4},
-        {label:'6+1', N:6}
-      ];
+      const offers=[{label:"3+1",N:3},{label:"4+1",N:4},{label:"6+1",N:6}];
 
-      tbody.innerHTML = '';
-      const rows = [];
-
-      offers.forEach(off => {
-        const N = off.N;
-        const res = calcForN(principal, odToday, monthlyRate, N);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
-          <td>${off.label}</td>
-          <td>${formatINR(res.installment)}</td>
-          <td>${formatINR(res.totalCollection)}</td>
-          <td>${formatINR(res.discount)}</td>
+      offers.forEach(o=>{
+        const r=calcForN(P,OD,rate,o.N);
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${formatINR(r.totalOutstanding)}</td>
+          <td>${o.label}</td>
+          <td>${formatINR(r.installment)}</td>
+          <td>${formatINR(r.totalCollection)}</td>
+          <td>${formatINR(r.discount)}</td>
         `;
         tbody.appendChild(tr);
-
-        const metaTxt = `Future Interest: ${formatINR(res.futureOD)} • Monthly interest: ${formatINR(res.monthlyInterestOnPrincipal)}`;
-        const sched = buildSchedule(firstDate, N);
-
-        if (off.N === 3){
-          meta31.textContent = metaTxt;
-          sched31.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
-        } else if (off.N === 4){
-          meta41.textContent = metaTxt;
-          sched41.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
-        } else if (off.N === 6){
-          meta61.textContent = metaTxt;
-          sched61.innerHTML = '<strong>Installment dates:</strong><br>' + sched.map(s=>`• ${s}`).join('<br>');
-        }
-
-        rows.push({
-          Outstanding: Math.round(principal + odToday + res.futureOD),
-          Offer: off.label,
-          Installment: res.installment,
-          TotalCollection: res.totalCollection,
-          Discount: res.discount
-        });
       });
-
-      currentRows = rows;
     }
 
-    function downloadCSV(rows){
-      const header = ['Outstanding','Offer','Installment','TotalCollection','Discount'];
-      const lines = [header.join(',')].concat(rows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(',')));
-      const csv = lines.join('\n');
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'settlement_offers.csv';
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    }
+    document.getElementById("recalc").onclick = render;
 
-    let currentRows = [];
-    const debouncedRender = debounce(renderAll, 160);
+    // RESET = FULL PAGE RELOAD
+    document.getElementById("reset").onclick = ()=> location.reload();
 
-    elPrincipal.addEventListener('input', debouncedRender);
-    elOD.addEventListener('input', debouncedRender);
-    // rate and date inputs are hidden; keep listeners harmless
-    elRate.addEventListener('input', debouncedRender);
-    elDate.addEventListener('change', debouncedRender);
+    // DOWNLOAD CSV
+    document.getElementById("download").onclick = ()=>{
+      let csv="Outstanding,Offer,Installment,TotalCollection,Discount\n";
+      document.querySelectorAll("#tbody tr").forEach(row=>{
+        let cols=row.querySelectorAll("td");
+        csv += [
+          cols[0].innerText.replace(/₹|,/g,""),
+          cols[1].innerText,
+          cols[2].innerText.replace(/₹|,/g,""),
+          cols[3].innerText.replace(/₹|,/g,""),
+          cols[4].innerText.replace(/₹|,/g,"")
+        ].join(",") + "\n";
+      });
+      const blob=new Blob([csv],{type:"text/csv"});
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="settlement_offers.csv";
+      a.click();
+    };
 
-    elRecalc.addEventListener('click', renderAll);
+    // REFRESH ICON CLICK
+    document.getElementById("refreshIcon").onclick = () => location.reload();
 
-    // Reset now reloads the full page
-    elReset.addEventListener('click', ()=>{
-      // full page refresh
-      location.reload();
-    });
-
-    elDownload.addEventListener('click', ()=> downloadCSV(currentRows));
-
-    // initial render
-    renderAll();
+    render();
   </script>
+
 </body>
 </html>
