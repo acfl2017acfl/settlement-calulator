@@ -38,9 +38,13 @@
     button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
     .muted{color:var(--muted);font-size:13px}
 
+    /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
     thead th{text-align:left;color:var(--muted);font-size:13px;padding-left:10px}
-    td{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;font-size:14px}
+    tbody tr { background: rgba(255,255,255,0.02); border-radius:8px; }
+    td{padding:10px;border-radius:8px;font-size:14px}
+    .cell-amount{font-weight:700}
+
     .pill{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700}
     .aside-list{display:flex;flex-direction:column;gap:10px}
     .offer-card{background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02)}
@@ -52,22 +56,19 @@
     .top-actions{display:flex;gap:8px;align-items:center}
     .action-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);font-weight:700}
 
-    /* mobile-friendly stacking for table rows (same behavior as original but tuned) */
+    /* mobile-friendly tweaks but KEEP table layout (no stacked rows) */
     @media (max-width:480px){
       .controls{flex-direction:column}
       button{width:100%}
-
-      table, thead, tbody, th, td, tr { display: block; }
-      thead { display: none; }
-      tbody { margin-top:8px; }
-      tr { margin-bottom:12px; }
-      td { position: relative; padding-left: 48%; border-radius:10px; }
-      td::before { position: absolute; left:12px; width:40%; white-space:nowrap; font-weight:700; color:var(--muted); font-size:13px }
-      td:nth-of-type(1)::before { content:"Outstanding"; }
-      td:nth-of-type(2)::before { content:"Offer"; }
-      td:nth-of-type(3)::before { content:"Installment"; }
-      td:nth-of-type(4)::before { content:"Total"; }
-      td:nth-of-type(5)::before { content:"Discount"; }
+      /* keep table as a normal table on small screens so header + columns remain */
+      table{width:100%; border-collapse:collapse; margin-top:12px}
+      thead th{padding:8px 10px;font-size:13px}
+      tbody tr{display:table-row; margin-bottom:8px}
+      td{display:table-cell; padding:10px}
+      /* ensure rounded row-like appearance: wrap each row cell with same background by styling cells */
+      tbody tr td { background: rgba(255,255,255,0.02); border-radius:8px; }
+      /* small devices: allow horizontal scroll if content overflows */
+      .card{overflow-x:auto}
     }
 
     /* smaller font for very small devices */
