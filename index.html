@@ -13,6 +13,8 @@
       --glass: rgba(255,255,255,0.03);
       --success:#4dd0e1;
       --card-grad: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+      --green:#28a745;
+      --gray:#6c757d;
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:#eaf2ff;background:linear-gradient(180deg,var(--bg) 0%, #0b1220 100%)}
@@ -40,44 +42,56 @@
 
     /* Reset button specific green */
     #reset {
-      background: #28a745 !important; /* green */
+      background: var(--green) !important; /* green */
       color: #fff !important;
       border: 0 !important;
     }
 
     /* Download button gray */
     #download {
-      background: #6c757d !important; /* gray */
+      background: var(--gray) !important; /* gray */
       color: #fff !important;
       border: 0 !important;
     }
 
     /* Today's Date badge */
     #todayDisplay {
-      display:inline-block;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       background: var(--accent);
       color: #ffffff;
-      padding: 6px 10px;
+      padding: 8px 12px;
       border-radius: 8px;
       font-weight:700;
       font-size:13px;
       margin-bottom:8px;
+      min-height:36px;
     }
 
-    /* Refresh SVG wrapper */
+    /* Refresh SVG button styled to match today's badge size/breadth visually */
     #refreshBtn {
-      width:28px;
-      height:28px;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      background:transparent;
-      border-radius:50%;
-      cursor:pointer;
+      background: var(--green);
+      color: #fff;
+      padding: 8px 12px;      /* match padding of todayDisplay */
+      border-radius: 8px;     /* same radius */
       margin-left:8px;
+      cursor:pointer;
+      border:0;
+      min-height:36px;        /* match height */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
-    /* SVG inside will be green fill */
-    #refreshBtn svg { width:18px; height:18px; display:block; }
+    #refreshBtn svg{
+      width:20px;
+      height:20px;
+      display:block;
+      stroke: #fff;
+      stroke-width:1.8;
+      fill: none;
+    }
 
     /* Table styling */
     table{width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:12px}
@@ -103,7 +117,7 @@
       button{width:100%}
       /* keep table as a normal table on small screens so header + columns remain */
       table{width:100%; border-collapse:collapse; margin-top:12px}
-      thead th{Padding:8px 10px;font-size:13px}
+      thead th{padding:8px 10px;font-size:13px}
       tbody tr{display:table-row; margin-bottom:8px}
       td{display:table-cell; padding:10px}
       /* ensure rounded row-like appearance: wrap each row cell with same background by styling cells */
@@ -143,16 +157,16 @@
       <div>
         <div class="card" aria-labelledby="inputs">
           <div id="inputs">
-            <!-- Today's Date styled badge with SVG refresh icon on right -->
+            <!-- Today's Date styled badge with bigger green SVG refresh button to the right -->
             <div style="display:flex; align-items:center; justify-content:flex-start; margin-bottom:8px;">
               <div id="todayDisplay" class="muted"></div>
 
-              <!-- green refresh SVG button -->
+              <!-- green refresh button sized to match Today's Date visually -->
               <button id="refreshBtn" aria-label="Refresh" title="Refresh">
-                <!-- SVG circular arrow, green fill -->
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                  <path d="M21 12a9 9 0 10-1.06 4.17" stroke="#28a745" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                  <path d="M21 3v6h-6" stroke="#28a745" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <!-- SVG circular arrow (white stroke) -->
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M21 12a9 9 0 10-1.06 4.17" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <path d="M21 3v6h-6" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
               </button>
             </div>
