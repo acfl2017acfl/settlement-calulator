@@ -53,7 +53,7 @@
     }
 
     /* Today's Date badge row (wraps badge + refresh button) */
-    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; white-space:nowrap; }
+    #todayRow { display:inline-flex; align-items:center; gap:8px; margin-bottom:8px; white-space:nowrap; width:100%; }
 
     /* Today's Date badge */
     #todayDisplay {
@@ -65,10 +65,10 @@
       font-weight:700;
       font-size:13px;
       line-height:1;
-      max-width:70%;
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
+      vertical-align:middle;
     }
 
     /* Refresh button (green background with white SVG). Force square sizing via JS.
@@ -91,7 +91,6 @@
 
     /* SVG styling: use preserveAspectRatio and fill explicitly */
     #refreshBtn svg { display:block; width:60%; height:60%; fill:#fff; vertical-align:middle; }
-    /* if high-DPI or different rendering, ensure path has fill */
     #refreshBtn svg path { fill: #fff; }
 
     /* Table styling */
@@ -306,6 +305,7 @@
     const sched61 = document.getElementById('sched61');
     const todayDisplay = document.getElementById('todayDisplay');
     const refreshBtn = document.getElementById('refreshBtn');
+    const todayRow = document.getElementById('todayRow');
 
     (function setDefaultDateToday(){
       const t = new Date();
@@ -435,19 +435,28 @@
     // initial render
     renderAll();
 
-    /***** Sync refresh button size to match the Today's Date badge height (square) *****/
+    /***** Sync refresh button size to match the Today's Date badge height (square)
+          and compute a safe max-width for the date so it's not clipped. *****/
     function syncRefreshSize(){
-      if (!todayDisplay || !refreshBtn) return;
+      if (!todayDisplay || !refreshBtn || !todayRow) return;
       // compute the visible size of the badge
-      const rect = todayDisplay.getBoundingClientRect();
+      const badgeRect = todayDisplay.getBoundingClientRect();
+      const rowRect = todayRow.getBoundingClientRect();
+
       // Use badge height to make a square button (avoids horizontal elongation on mobile)
-      // Add 0px buffer; you can adjust +2 or -2 if you want exact visual tweak
-      const height = Math.max(28, Math.round(rect.height));
-      // set button to a square with this height
+      const height = Math.max(28, Math.round(badgeRect.height));
       refreshBtn.style.width = height + 'px';
       refreshBtn.style.height = height + 'px';
-      // ensure border-radius remains visually consistent
       refreshBtn.style.borderRadius = Math.max(6, Math.round(height * 0.2)) + 'px';
+
+      // Compute available width for the badge text inside the row:
+      // row width - button width - gap - small buffer
+      // Gap is around 8px (CSS). Use 8 as default; if spacing differs, buffer handles it.
+      const gap = 8;
+      const buffer = 6; // small breathing room
+      const available = Math.max(0, Math.round(rowRect.width - height - gap - buffer));
+      // set maxWidth so date isn't clipped; allow it to use full available width
+      todayDisplay.style.maxWidth = available + 'px';
     }
 
     // initial sync (already called after setting date but call again to be safe)
@@ -460,6 +469,9 @@
     if (window.MutationObserver) {
       const mo = new MutationObserver(debounce(syncRefreshSize, 60));
       mo.observe(todayDisplay, { childList: true, subtree: true, characterData: true });
+      // Also observe row size changes (in case wrap/parent changes)
+      const mo2 = new MutationObserver(debounce(syncRefreshSize, 60));
+      mo2.observe(todayRow, { attributes: true, childList: true, subtree: true });
     }
   </script>
 </body>
