@@ -63,8 +63,8 @@
       tr { margin-bottom:12px; }
       td { position: relative; padding-left: 48%; border-radius:10px; }
       td::before { position: absolute; left:12px; width:40%; white-space:nowrap; font-weight:700; color:var(--muted); font-size:13px }
-      td:nth-of-type(1)::before { content:"Outstanding"; }
-      td:nth-of-type(2)::before { content:"Offer"; }
+      td:nth-of-type(1)::before { content:"Offer"; }
+      td:nth-of-type(2)::before { content:"Outstanding"; }
       td:nth-of-type(3)::before { content:"Installment"; }
       td:nth-of-type(4)::before { content:"Total"; }
       td:nth-of-type(5)::before { content:"Discount"; }
@@ -272,8 +272,8 @@
         const res = calcForN(principal, odToday, monthlyRate, N);
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
           <td>${off.label}</td>
+          <td class="cell-amount">${formatINR(principal + odToday + res.futureOD)}</td>
           <td>${formatINR(res.installment)}</td>
           <td>${formatINR(res.totalCollection)}</td>
           <td>${formatINR(res.discount)}</td>
@@ -295,8 +295,8 @@
         }
 
         rows.push({
-          Outstanding: Math.round(principal + odToday + res.futureOD),
           Offer: off.label,
+          Outstanding: Math.round(principal + odToday + res.futureOD),
           Installment: res.installment,
           TotalCollection: res.totalCollection,
           Discount: res.discount
@@ -307,7 +307,7 @@
     }
 
     function downloadCSV(rows){
-      const header = ['Outstanding','Offer','Installment','TotalCollection','Discount'];
+      const header = ['Offer','Outstanding','Installment','TotalCollection','Discount'];
       const lines = [header.join(',')].concat(rows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(',')));
       const csv = lines.join('\n');
       const blob = new Blob([csv], {type:'text/csv'});
@@ -319,7 +319,13 @@
     function copyText(rows){
       let s = '';
       rows.forEach(r=>{
-        s += `Outstanding: ${r.Outstanding}\nOffer: ${r.Offer}\nInstallment: ${r.Installment}\nTotalCollection: ${r.TotalCollection}\nDiscount: ${r.Discount}\n\n`;
+        s += `Offer: ${r.Offer}
+Outstanding: ${r.Outstanding}
+Installment: ${r.Installment}
+TotalCollection: ${r.TotalCollection}
+Discount: ${r.Discount}
+
+`;
       });
       return s;
     }
