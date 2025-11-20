@@ -281,7 +281,7 @@
         `;
         tbody.appendChild(tr);
 
-        const metaTxt = `Future OD: ${formatINR(res.futureOD)} • Monthly interest on P: ${formatINR(res.monthlyInterestOnPrincipal)}`;
+        const metaTxt = `Future Interest: ${formatINR(res.futureOD)} • Monthly interest: ${formatINR(res.monthlyInterestOnPrincipal)}`;
         const sched = buildSchedule(firstDate, N);
 
         if (off.N === 3){
