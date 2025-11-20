@@ -88,7 +88,7 @@
       </div>
       <div>
         <h1>Settlement Offer Calculator</h1>
-        <p class="lead">Principal + InterestOutstanding + Future Interest (per offer) → divide by (N+1). Installments always rounded UP to next ₹10.</p>
+        <p class="lead">Principal + Interest Outstanding + Future Interest (per offer) → Divide by (N+1). Installments always rounded UP to next ₹10.</p>
       </div>
     </header>
 
@@ -98,10 +98,10 @@
         <div class="card" aria-labelledby="inputs">
           <div id="inputs">
             <label>Principal Outstanding (₹)</label>
-            <input id="principal" type="number" min="0" step="1" value="50000" inputmode="numeric" />
+            <input id="principal" type="number" min="0" step="1" value="0" inputmode="numeric" />
 
             <label style="margin-top:10px">Interest Outstanding (₹)</label>
-            <input id="odToday" type="number" min="0" step="1" value="5000" inputmode="numeric" />
+            <input id="odToday" type="number" min="0" step="1" value="0" inputmode="numeric" />
 
             <label style="margin-top:10px">Annual Interest Rate (%)</label>
             <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" />
@@ -130,7 +130,7 @@
             <tbody id="tbody"></tbody>
           </table>
 
-          <p class="muted" style="margin-top:10px">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
+          <p class="muted" style="margin-top:10px">Formula preview: Outstanding = Principal + InterestOutstanding + (Principal × MonthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
         </div>
       </div>
 
