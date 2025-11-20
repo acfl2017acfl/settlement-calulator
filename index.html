@@ -17,8 +17,12 @@
     h1{margin:0;font-size:18px}
     p.lead{margin:4px 0 0;color:var(--muted);font-size:13px}
     .card{background:linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01));padding:14px;border-radius:12px;border:1px solid var(--glass);box-shadow:0 8px 28px rgba(2,6,23,0.6)}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:14px}
-    @media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+    /* Make grid horizontally scrollable on narrow screens so mobile looks like desktop */
+    .grid-wrapper{overflow-x:auto}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:14px;min-width:760px}
+    @media(min-width:980px){.grid{min-width:unset;grid-template-columns:1fr 360px}}
+
     label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
     input[type=number], input[type=date], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px}
     .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
@@ -35,9 +39,9 @@
     .schedule{margin-top:8px;font-size:13px;color:var(--muted)}
     footer{margin-top:12px;color:var(--muted);font-size:13px}
 
-    /* Mobile stacking of table rows only on tiny screens */
-    @media (max-width:480px){
-      .grid{gap:10px}
+    /* Keep mobile look identical to desktop by allowing horizontal scroll; only very small screens get stacked view under 360px */
+    @media (max-width:360px){
+      .grid{grid-template-columns:1fr;min-width:unset}
       .controls{flex-direction:column}
       button{width:100%}
       table, thead, tbody, th, td, tr { display: block; }
@@ -60,80 +64,82 @@
       <div class="logo">SO</div>
       <div>
         <h1>Settlement Offer Calculator</h1>
-        <p class="lead">Principal + OD + future OD (per offer) → divide by (N+1). Installments always rounded UP to next ₹10.</p>
+        <p class="lead">Principal + Interest Outstanding + future OD (per offer) → divide by (N+1). Installments always rounded UP to next ₹10.</p>
       </div>
     </header>
 
-    <div class="grid">
-      <!-- left: inputs + results table -->
-      <div>
-        <div class="card" aria-labelledby="inputs">
-          <div id="inputs">
-            <label>Principal Outstanding (₹)</label>
-            <input id="principal" type="number" min="0" step="1" value="50000" inputmode="numeric" />
+    <div class="grid-wrapper">
+      <div class="grid">
+        <!-- left: inputs + results table -->
+        <div>
+          <div class="card" aria-labelledby="inputs">
+            <div id="inputs">
+              <label>Principal Outstanding (₹)</label>
+              <input id="principal" type="number" min="0" step="1" value="50000" inputmode="numeric" />
 
-            <label style="margin-top:10px">Interest Outstanding (₹)</label>
-            <input id="odToday" type="number" min="0" step="1" value="5000" inputmode="numeric" />
+              <label style="margin-top:10px">Interest Outstanding (₹)</label>
+              <input id="odToday" type="number" min="0" step="1" value="5000" inputmode="numeric" />
 
-            <label style="margin-top:10px">Annual Interest Rate (%)</label>
-            <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" />
+              <label style="margin-top:10px">Annual Interest Rate (%)</label>
+              <input id="annualRate" type="number" min="0" step="0.01" value="27" inputmode="decimal" />
 
-            <label style="margin-top:10px">First EMI Date (today)</label>
-            <input id="firstDate" type="date" readonly />
+              <label style="margin-top:10px">First EMI Date (today)</label>
+              <input id="firstDate" type="date" readonly />
 
-            <div class="controls">
-              <button id="recalc">Recalculate</button>
-              <button id="reset" class="ghost">Reset</button>
-              <button id="download" class="ghost">Download CSV</button>
-              <button id="copy" class="ghost">Copy Results</button>
+              <div class="controls">
+                <button id="recalc">Recalculate</button>
+                <button id="reset" class="ghost">Reset</button>
+                <button id="download" class="ghost">Download CSV</button>
+                <button id="copy" class="ghost">Copy Results</button>
+              </div>
+            </div>
+
+            <table id="results" aria-live="polite">
+              <thead>
+                <tr>
+                  <th>Outstanding (₹)</th>
+                  <th>Offer</th>
+                  <th>Installment (₹)</th>
+                  <th>Total Collection (₹)</th>
+                  <th>Discount (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+
+            <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
+          </div>
+        </div>
+
+        <!-- right: offer cards with schedule -->
+        <aside>
+          <div class="card aside-list">
+            <div class="offer-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div><span class="pill">3+1</span></div>
+                <div class="small" id="meta31"></div>
+              </div>
+              <div class="schedule" id="sched31"></div>
+            </div>
+
+            <div class="offer-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div><span class="pill">4+1</span></div>
+                <div class="small" id="meta41"></div>
+              </div>
+              <div class="schedule" id="sched41"></div>
+            </div>
+
+            <div class="offer-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div><span class="pill">6+1</span></div>
+                <div class="small" id="meta61"></div>
+              </div>
+              <div class="schedule" id="sched61"></div>
             </div>
           </div>
-
-          <table id="results" aria-live="polite">
-            <thead>
-              <tr>
-                <th>Outstanding (₹)</th>
-                <th>Offer</th>
-                <th>Installment (₹)</th>
-                <th>Total Collection (₹)</th>
-                <th>Discount (₹)</th>
-              </tr>
-            </thead>
-            <tbody id="tbody"></tbody>
-          </table>
-
-          <p class="muted" style="margin-top:10px">Formula preview: Total = Principal + InterestOutstanding + (Principal × monthlyRate × N). Installment = Total ÷ (N+1), rounded UP to next ₹10.</p>
-        </div>
+        </aside>
       </div>
-
-      <!-- right: offer cards with schedule -->
-      <aside>
-        <div class="card aside-list">
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill">3+1</span></div>
-              <div class="small" id="meta31"></div>
-            </div>
-            <div class="schedule" id="sched31"></div>
-          </div>
-
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill">4+1</span></div>
-              <div class="small" id="meta41"></div>
-            </div>
-            <div class="schedule" id="sched41"></div>
-          </div>
-
-          <div class="offer-card">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div><span class="pill">6+1</span></div>
-              <div class="small" id="meta61"></div>
-            </div>
-            <div class="schedule" id="sched61"></div>
-          </div>
-        </div>
-      </aside>
     </div>
 
     <footer class="muted">Note: Installment is rounded <strong>up</strong> to the nearest ₹10. 'Discount' shown equals one installment (the "+1").</footer>
@@ -296,7 +302,8 @@
     function downloadCSV(rows){
       const header = ['Outstanding','Offer','Installment','TotalCollection','Discount'];
       const lines = [header.join(',')].concat(rows.map(r => [r.Outstanding, r.Offer, r.Installment, r.TotalCollection, r.Discount].join(',')));
-      const csv = lines.join('\n');
+      const csv = lines.join('
+');
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = 'settlement_offers.csv';
@@ -307,7 +314,13 @@
     function copyText(rows){
       let s = '';
       rows.forEach(r=>{
-        s += `Outstanding: ${r.Outstanding}\nOffer: ${r.Offer}\nInstallment: ${r.Installment}\nTotalCollection: ${r.TotalCollection}\nDiscount: ${r.Discount}\n\n`;
+        s += `Outstanding: ${r.Outstanding}
+Offer: ${r.Offer}
+Installment: ${r.Installment}
+TotalCollection: ${r.TotalCollection}
+Discount: ${r.Discount}
+
+`;
       });
       return s;
     }
